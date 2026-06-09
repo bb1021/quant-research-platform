@@ -142,9 +142,9 @@ def deterministic_report(context: ResearchContext) -> str:
     else:
         bear_points.append("The moving average profile is not yet supportive.")
     if context.realized_vol_60d < 0.35:
-        bull_points.append("Realized volatility is not elevated relative to typical single-name equity risk.")
+        bull_points.append("Realised volatility is not elevated relative to typical single-name equity risk.")
     else:
-        bear_points.append("Elevated realized volatility raises sizing and drawdown risk.")
+        bear_points.append("Elevated realised volatility raises sizing and drawdown risk.")
 
     if not bull_points:
         bull_points.append("Upside case depends on improving momentum, lower volatility, and stronger factor breadth.")
@@ -152,7 +152,7 @@ def deterministic_report(context: ResearchContext) -> str:
         bear_points.append("The main bear case is factor mean reversion after a strong run.")
     benchmark_text = (
         f"Versus {context.benchmark_ticker}, the latest backtest estimates beta at {_fmt_num(context.beta_vs_benchmark)}, "
-        f"annualized alpha at {_fmt_pct(context.alpha_vs_benchmark)}, and information ratio at {_fmt_num(context.information_ratio)}."
+        f"annualised alpha at {_fmt_pct(context.alpha_vs_benchmark)}, and information ratio at {_fmt_num(context.information_ratio)}."
         if context.benchmark_ticker
         else "Benchmark-relative statistics are unavailable because no benchmark backtest was supplied."
     )
@@ -175,13 +175,13 @@ As of: {context.as_of}
 - 12-month momentum: {_fmt_pct(f.get("mom_12m", np.nan))}
 - 6-month momentum: {_fmt_pct(f.get("mom_6m", np.nan))}
 - 3-month momentum: {_fmt_pct(f.get("mom_3m", np.nan))}
-- 60-day realized volatility: {_fmt_pct(f.get("vol_60d", context.realized_vol_60d))}
-- 20-day realized volatility: {_fmt_pct(f.get("vol_20d", np.nan))}
+- 60-day realised volatility: {_fmt_pct(f.get("vol_60d", context.realized_vol_60d))}
+- 20-day realised volatility: {_fmt_pct(f.get("vol_20d", np.nan))}
 - Mean reversion signal: {_fmt_pct(f.get("mean_reversion_5d", np.nan))}
 - Moving average crossover: {_fmt_pct(f.get("ma_crossover", np.nan))}
 
 ## Volatility and Drawdown Analysis
-The 60-day realized volatility is {_fmt_pct(context.realized_vol_60d)} and the maximum drawdown over the available sample is {_fmt_pct(context.max_drawdown)}. Position sizing should reflect both standalone volatility and benchmark-relative contribution. Fundamental data is represented as a placeholder in this MVP, so valuation and earnings quality require external validation before investment use.
+The 60-day realised volatility is {_fmt_pct(context.realized_vol_60d)} and the maximum drawdown over the available sample is {_fmt_pct(context.max_drawdown)}. Position sizing should reflect both standalone volatility and benchmark-relative contribution. Fundamental data is represented as a placeholder in this MVP, so valuation and earnings quality require external validation before investment use.
 
 ## Benchmark-Relative Analysis
 {benchmark_text}

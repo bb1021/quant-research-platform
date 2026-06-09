@@ -1341,6 +1341,12 @@ def _metrics_frame(metrics: dict[str, float]) -> pd.DataFrame:
         else:
             formatted.append(f"{value:.2f}")
     frame["Value"] = formatted
+    frame["Metric"] = frame["Metric"].replace(
+        {
+            "Annualized Volatility": "Annualised Volatility",
+            "Alpha vs Benchmark": "Alpha vs Benchmark",
+        }
+    )
     return frame
 
 
@@ -1643,7 +1649,7 @@ def _kpi_values() -> list[tuple[str, str, str]]:
                 ("Portfolio return", _pct(total_return), _money(equity["portfolio_value"].iloc[-1])),
                 ("Sharpe", f"{metrics.get('Sharpe Ratio', np.nan):.2f}" if pd.notna(metrics.get("Sharpe Ratio", np.nan)) else "n/a", "Risk adjusted return"),
                 ("Max drawdown", _pct(metrics.get("Max Drawdown")), "Peak to trough"),
-                ("Alpha", _pct(metrics.get("Alpha vs Benchmark")), "Annualized vs benchmark"),
+                ("Alpha", _pct(metrics.get("Alpha vs Benchmark")), "Annualised vs benchmark"),
             ]
         )
     else:
@@ -1688,9 +1694,9 @@ def _market_regime(benchmark: str) -> tuple[str, str]:
     recent_return = (1.0 + returns.tail(63)).prod() - 1.0 if len(returns) >= 20 else (1.0 + returns).prod() - 1.0
     recent_vol = returns.tail(60).std() * np.sqrt(252) if len(returns) >= 20 else np.nan
     if pd.notna(recent_return) and recent_return > 0.03 and (pd.isna(recent_vol) or recent_vol < 0.28):
-        return "Growth / Risk-On", "Constructive tape with manageable realized volatility."
+        return "Growth / Risk-On", "Constructive tape with manageable realised volatility."
     if pd.notna(recent_return) and recent_return < -0.03:
-        return "Defensive / Risk-Off", "Benchmark pressure favors tighter risk budgets."
+        return "Defensive / Risk-Off", "Benchmark pressure favours tighter risk budgets."
     if pd.notna(recent_vol) and recent_vol >= 0.32:
         return "Volatile / Transitional", "Elevated volatility suggests selective position sizing."
     return "Mixed / Factor-Led", "Cross-sectional signals likely matter more than broad beta."
@@ -1721,7 +1727,7 @@ def _render_command_center(benchmark: str) -> None:
         summary = "Load a universe to activate the research copilot. It will surface momentum leadership, volatility concentration, market regime, and the next most useful workflow action."
     else:
         summary = (
-            f"{leader} leads the momentum screen, {high_vol} carries the highest realized volatility, "
+            f"{leader} leads the momentum screen, {high_vol} carries the highest realised volatility, "
             f"and {weakest} is the weakest momentum constituent. The current regime reads as {regime.lower()}. "
             f"Next best action: {action.lower()}."
         )
@@ -1776,7 +1782,7 @@ def _render_command_center(benchmark: str) -> None:
                     <div class="market-callout">
                         <div class="market-label">Risk Watch</div>
                         <div class="market-value">{high_vol if high_vol != "n/a" else "Pending"}</div>
-                        <div class="intel-note">Highest realized volatility constituent</div>
+                        <div class="intel-note">Highest realised volatility constituent</div>
                     </div>
                 </div>
                 <div class="market-action">
@@ -1904,7 +1910,7 @@ with tabs[1]:
             _style_chart(px.line(melted, x="date", y="adj_close", color="ticker", title="Adjusted Close"), height=390),
             use_container_width=True,
         )
-        st.caption("Recent normalized OHLCV records")
+        st.caption("Recent normalised OHLCV records")
         st.dataframe(price_data.tail(500), use_container_width=True, hide_index=True)
 
 with tabs[2]:

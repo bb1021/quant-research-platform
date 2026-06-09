@@ -14,7 +14,7 @@ def _normalize_weights(weights: pd.Series) -> pd.Series:
     weights = weights.clip(lower=0.0)
     total = weights.sum()
     if total <= 0:
-        return _with_warning(equal_weights(list(weights.index)), "Weight normalization failed; using equal weights.")
+        return _with_warning(equal_weights(list(weights.index)), "Weight normalisation failed; using equal weights.")
     return weights / total
 
 
@@ -73,10 +73,10 @@ def mean_variance_weights(
             options={"maxiter": 200, "ftol": 1e-9},
         )
         if not result.success or not np.all(np.isfinite(result.x)):
-            return _with_warning(equal_weights(tickers), "Mean-variance optimization failed; using equal weights.")
+            return _with_warning(equal_weights(tickers), "Mean-variance optimisation failed; using equal weights.")
         return _normalize_weights(pd.Series(result.x, index=tickers))
     except Exception:
-        return _with_warning(equal_weights(tickers), "Mean-variance optimization failed; using equal weights.")
+        return _with_warning(equal_weights(tickers), "Mean-variance optimisation failed; using equal weights.")
 
 
 def risk_parity_weights(covariance: pd.DataFrame) -> pd.Series:
@@ -109,10 +109,10 @@ def risk_parity_weights(covariance: pd.DataFrame) -> pd.Series:
         if not result.success or not np.all(np.isfinite(result.x)):
             diagonal_vol = np.sqrt(np.diag(cov))
             fallback = volatility_weights(pd.Series(diagonal_vol, index=tickers))
-            return _with_warning(fallback, "Risk parity optimization failed; using inverse-volatility fallback.")
+            return _with_warning(fallback, "Risk parity optimisation failed; using inverse-volatility fallback.")
         return _normalize_weights(pd.Series(result.x, index=tickers))
     except Exception:
-        return _with_warning(equal_weights(tickers), "Risk parity optimization failed; using equal weights.")
+        return _with_warning(equal_weights(tickers), "Risk parity optimisation failed; using equal weights.")
 
 
 def build_portfolio_weights(
@@ -139,7 +139,7 @@ def build_portfolio_weights(
     trailing = trailing_returns.reindex(columns=selected).dropna(how="all")
     if len(trailing) < 20:
         if method_key in {"mean_variance", "mean_variance_optimization", "mvo", "risk_parity", "risk_parity_approx"}:
-            return _with_warning(equal_weights(selected), "Insufficient trailing returns for optimization; using equal weights.")
+            return _with_warning(equal_weights(selected), "Insufficient trailing returns for optimisation; using equal weights.")
         return equal_weights(selected)
     expected = trailing.mean().fillna(0.0) * 252
     cov = trailing.cov().fillna(0.0) * 252

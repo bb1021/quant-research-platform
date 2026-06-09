@@ -12,7 +12,7 @@ TRADING_DAYS = 252
 
 
 def normalize_tickers(tickers: str | Iterable[str]) -> list[str]:
-    """Normalize ticker input while preserving order."""
+    """Normalise ticker input while preserving order."""
     if isinstance(tickers, str):
         raw = tickers.replace("\n", ",").replace(";", ",").split(",")
     else:
@@ -66,4 +66,3 @@ def latest_rows(df: pd.DataFrame, group_col: str = "ticker", date_col: str = "da
         return df.copy()
     ordered = df.sort_values([group_col, date_col])
     return ordered.groupby(group_col, as_index=False).tail(1).reset_index(drop=True)
-

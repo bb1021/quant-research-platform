@@ -15,7 +15,7 @@ Quant research workflows often split data ingestion, signal research, backtestin
 - Long-only top-N backtester with monthly, weekly, or daily rebalancing
 - Configurable starting capital, benchmark ticker, transaction costs, and top-N selection
 - Equal weight, inverse volatility, mean-variance, and risk parity weighting
-- User-visible fallback warnings when optimizer inputs are insufficient
+- User-visible fallback warnings when optimiser inputs are insufficient
 - Transaction cost and turnover tracking
 - Benchmark comparison against SPY or any available ticker
 - CAGR, volatility, Sharpe, Sortino, drawdown, Calmar, beta, alpha, information ratio, win rate
@@ -77,9 +77,9 @@ streamlit run app.py
 
 ## Methodology
 
-The factor engine calculates trailing return momentum over 12, 6, and 3 months, annualized realized volatility over 60 and 20 trading days, a short-term mean reversion signal, a 50 versus 200 day moving average crossover, and cross-sectional relative strength ranking. Backtests shift factor signals by one trading day before applying returns to reduce lookahead bias.
+The factor engine calculates trailing return momentum over 12, 6, and 3 months, annualised realised volatility over 60 and 20 trading days, a short-term mean reversion signal, a 50 versus 200 day moving average crossover, and cross-sectional relative strength ranking. Backtests shift factor signals by one trading day before applying returns to reduce lookahead bias.
 
-Portfolio construction supports equal weighting, inverse volatility weighting, constrained mean-variance optimization, and a risk parity approximation. Optimizers are long-only and fall back to equal weights if inputs are insufficient or optimization fails. The dashboard surfaces these fallbacks as warnings so the user can distinguish a successful optimized portfolio from a safe fallback.
+Portfolio construction supports equal weighting, inverse volatility weighting, constrained mean-variance optimisation, and a risk parity approximation. Optimisers are long-only and fall back to equal weights if inputs are insufficient or optimisation fails. The dashboard surfaces these fallbacks as warnings so the user can distinguish a successful optimised portfolio from a safe fallback.
 
 ## AI Research Layer
 

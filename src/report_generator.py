@@ -9,6 +9,11 @@ import pandas as pd
 from .utils import ensure_directory
 
 
+METRIC_LABELS = {
+    "Annualized Volatility": "Annualised Volatility",
+}
+
+
 def save_report(report_text: str, ticker: str, output_dir: str | Path = "reports", extension: str = "md") -> Path:
     directory = ensure_directory(output_dir)
     safe_ticker = "".join(ch for ch in ticker.upper() if ch.isalnum() or ch in {"-", "_"})
@@ -40,7 +45,8 @@ def metrics_to_markdown(metrics: dict[str, float] | pd.DataFrame, title: str = "
         return f"## {title}\n\nNo metrics available.\n"
     rows = ["| Metric | Value |", "|---|---|"]
     for _, row in frame.iterrows():
-        rows.append(f"| {row['Metric']} | {row['Value']} |")
+        metric = METRIC_LABELS.get(str(row["Metric"]), row["Metric"])
+        rows.append(f"| {metric} | {row['Value']} |")
     return f"## {title}\n\n" + "\n".join(rows) + "\n"
 
 
