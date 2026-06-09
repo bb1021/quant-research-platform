@@ -1,0 +1,2 @@
+"""Quant Research Platform package."""
+

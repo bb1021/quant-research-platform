@@ -1,0 +1,16 @@
+__pycache__/
+.pytest_cache/
+.streamlit/
+.venv/
+venv/
+.env
+*.pyc
+*.pyo
+*.pyd
+*.db-wal
+*.db-shm
+*.duckdb.wal
+data/*.duckdb
+reports/*.md
+reports/*.txt
+
