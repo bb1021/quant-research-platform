@@ -3,14 +3,7 @@ __pycache__/
 .streamlit/
 .venv/
 venv/
-node_modules/
 .env
 *.pyc
-*.pyo
-*.pyd
-*.db-wal
-*.db-shm
-*.duckdb.wal
-data/*.duckdb
 reports/*.md
 reports/*.txt

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from html import escape
-
 import numpy as np
 import pandas as pd
 import plotly.express as px
@@ -13,6 +12,14 @@ from src.backtester import run_backtest
 from src.data_loader import get_price_data
 from src.factors import FACTOR_DIRECTIONS, calculate_factors
 from src.metrics import rolling_sharpe, rolling_volatility
+from src.markets import (
+    generate_market_brief,
+    generate_trade_ideas,
+    interpret_market_conditions,
+    load_market_dashboard_data,
+    market_snapshot,
+    normalised_market_trends,
+)
 from src.report_generator import backtest_summary_markdown, markdown_to_text, metrics_to_markdown, save_report
 from src.risk import risk_summary
 from src.utils import latest_rows, normalize_tickers
@@ -27,7 +34,30 @@ st.set_page_config(
 )
 
 DEFAULT_TICKERS = "AAPL, MSFT, NVDA, AMZN, GOOGL, META, JPM, XOM, UNH, SPY"
-CHART_COLORS = ["#58d5b7", "#8da2ff", "#f6c36a", "#ef7e8e", "#9ad66f", "#c792ea", "#6fb7ff", "#f08f5f"]
+CHART_COLORS = ["#f4f4f4", "#b8b8b8", "#8f8f8f", "#6f6f6f", "#d8d8d8", "#a2a2a2", "#7d7d7d", "#c7c7c7"]
+PAGES = [
+    "Overview",
+    "Market Dashboard",
+    "Data",
+    "Factors",
+    "Trade Ideas",
+    "Backtest",
+    "Risk Analytics",
+    "AI Research Report",
+    "Market Brief",
+]
+PAGE_SLUGS = {page.lower().replace(" ", "-"): page for page in PAGES}
+RAIL_ICONS = {
+    "Overview": "O",
+    "Market Dashboard": "M",
+    "Data": "D",
+    "Factors": "F",
+    "Trade Ideas": "TI",
+    "Backtest": "B",
+    "Risk Analytics": "R",
+    "AI Research Report": "AI",
+    "Market Brief": "MB",
+}
 
 
 st.markdown(
@@ -865,51 +895,76 @@ st.markdown(
         gap: 0.82rem;
     }
 
-    .rail-icon {
+    div[data-testid="stRadio"]:has(div[role="radiogroup"][aria-label="Primary Navigation"]) {
+        position: fixed !important;
+        inset: 7.05rem auto auto 1.88rem !important;
+        width: 72px !important;
+        z-index: 1001 !important;
+    }
+
+    div[data-testid="stRadio"]:has(div[role="radiogroup"][aria-label="Primary Navigation"]) > label {
+        display: none !important;
+    }
+
+    div[data-testid="stRadio"]:has(div[role="radiogroup"][aria-label="Primary Navigation"]) div[role="radiogroup"] {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 0.82rem !important;
+    }
+
+    div[data-testid="stRadio"]:has(div[role="radiogroup"][aria-label="Primary Navigation"]) label[data-baseweb="radio"] {
         width: 72px;
         height: 52px;
-        display: grid;
-        place-items: center;
+        display: grid !important;
+        place-items: center !important;
         color: #b7c5cc;
-        font-size: 0;
+        text-decoration: none !important;
+        font-size: 0 !important;
         font-weight: 820;
         border-radius: 0 999px 999px 0;
         border: 1px solid transparent;
+        position: relative;
+        margin: 0 !important;
+        padding: 0 !important;
         transition: background 170ms ease, color 170ms ease, border-color 170ms ease;
     }
 
-    .rail-icon::before {
-        content: attr(title);
+    div[data-testid="stRadio"]:has(div[role="radiogroup"][aria-label="Primary Navigation"]) label[data-baseweb="radio"] > div:first-child {
+        display: none !important;
+    }
+
+    div[data-testid="stRadio"]:has(div[role="radiogroup"][aria-label="Primary Navigation"]) label[data-baseweb="radio"] p {
         width: 28px;
         height: 28px;
         display: grid;
         place-items: center;
         border: 1px solid currentColor;
         border-radius: 8px;
-        font-size: 0.72rem;
+        font-size: 0.72rem !important;
         line-height: 1;
         letter-spacing: 0;
         opacity: 0.95;
+        color: inherit !important;
+        margin: 0 !important;
     }
 
-    .rail-icon[title="Overview"]::before { content: "O"; }
-    .rail-icon[title="Data"]::before { content: "D"; }
-    .rail-icon[title="Factors"]::before { content: "F"; }
-    .rail-icon[title="Backtest"]::before { content: "B"; }
-    .rail-icon[title="Risk Analytics"]::before { content: "R"; }
-    .rail-icon[title="AI Research Report"]::before { content: "AI"; }
+    div[data-testid="stRadio"]:has(div[role="radiogroup"][aria-label="Primary Navigation"]) label[data-baseweb="radio"]:hover {
+        color: #effffb;
+        background: rgba(148, 163, 184, 0.09);
+        border-color: rgba(88, 213, 183, 0.18);
+    }
 
-    .rail-icon.active {
+    div[data-testid="stRadio"]:has(div[role="radiogroup"][aria-label="Primary Navigation"]) label[data-baseweb="radio"]:has(input:checked) {
         color: #f0fffb;
         border-color: rgba(141, 162, 255, 0.07);
         background: linear-gradient(90deg, rgba(92, 116, 143, 0.26), rgba(65, 85, 106, 0.18));
         box-shadow: inset -1px 0 0 rgba(88, 213, 183, 0.45);
     }
 
-    .rail-icon.active::after {
+    div[data-testid="stRadio"]:has(div[role="radiogroup"][aria-label="Primary Navigation"]) label[data-baseweb="radio"]:has(input:checked)::after {
         content: "";
         position: absolute;
-        left: 87px;
+        left: 72px;
         width: 2px;
         height: 34px;
         border-radius: 999px;
@@ -1202,55 +1257,75 @@ st.markdown(
         margin: 0.3rem 0 0.6rem;
     }
 
-    .stTabs [data-baseweb="tab-list"] {
+    .bottom-nav {
+        display: none !important;
+    }
+
+    div[data-testid="stRadio"]:has(div[role="radiogroup"][aria-label="Section Navigation"]) {
         position: fixed !important;
         left: 8.8rem !important;
-        right: auto !important;
+        right: 1.6rem !important;
         bottom: 2.15rem !important;
         z-index: 920 !important;
-        gap: 1rem !important;
+        width: calc(100vw - 10.4rem) !important;
+        overflow-x: auto !important;
+        padding-bottom: 0.2rem !important;
+    }
+
+    div[data-testid="stRadio"]:has(div[role="radiogroup"][aria-label="Section Navigation"]) > label {
+        display: none !important;
+    }
+
+    div[data-testid="stRadio"]:has(div[role="radiogroup"][aria-label="Section Navigation"]) div[role="radiogroup"] {
+        display: flex !important;
+        gap: 0.65rem !important;
         padding: 0 !important;
-        width: auto !important;
+        width: max-content !important;
         border: 0 !important;
         background: transparent !important;
         box-shadow: none !important;
     }
 
-    .stTabs [data-baseweb="tab"] {
-        height: 52px !important;
-        min-width: 96px;
-        padding: 0 1.55rem !important;
+    div[data-testid="stRadio"]:has(div[role="radiogroup"][aria-label="Section Navigation"]) label[data-baseweb="radio"] {
+        height: 48px !important;
+        min-width: 82px;
+        padding: 0 1.05rem !important;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         border-radius: 11px !important;
         background: rgba(14, 27, 39, 0.72) !important;
         border: 1px solid rgba(120, 151, 171, 0.16) !important;
         color: #bac6cd !important;
-        font-size: 1rem !important;
+        text-decoration: none !important;
+        font-size: 0.91rem !important;
         font-weight: 620 !important;
+        margin: 0 !important;
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
     }
 
-    .stTabs [data-baseweb="tab"] p,
-    .stTabs [data-baseweb="tab"] span {
-        color: #bac6cd !important;
-        font-size: 1rem !important;
-        font-weight: 620 !important;
+    div[data-testid="stRadio"]:has(div[role="radiogroup"][aria-label="Section Navigation"]) label[data-baseweb="radio"] > div:first-child {
+        display: none !important;
     }
 
-    .stTabs [aria-selected="true"] {
+    div[data-testid="stRadio"]:has(div[role="radiogroup"][aria-label="Section Navigation"]) label[data-baseweb="radio"] p {
+        color: inherit !important;
+        font-size: 0.91rem !important;
+        font-weight: 620 !important;
+        margin: 0 !important;
+    }
+
+    div[data-testid="stRadio"]:has(div[role="radiogroup"][aria-label="Section Navigation"]) label[data-baseweb="radio"]:hover {
+        color: #effffb !important;
+        border-color: rgba(88, 213, 183, 0.28) !important;
+        background: rgba(22, 39, 53, 0.92) !important;
+    }
+
+    div[data-testid="stRadio"]:has(div[role="radiogroup"][aria-label="Section Navigation"]) label[data-baseweb="radio"]:has(input:checked) {
         color: #f5f8f8 !important;
         background: linear-gradient(180deg, rgba(35, 57, 75, 0.78), rgba(16, 31, 44, 0.82)) !important;
         border-color: rgba(88, 213, 183, 0.22) !important;
         box-shadow: inset 0 -2px 0 #58d5b7, 0 10px 26px rgba(0, 0, 0, 0.22), 0 8px 24px rgba(88, 213, 183, 0.08) !important;
-    }
-
-    .stTabs [aria-selected="true"] p,
-    .stTabs [aria-selected="true"] span {
-        color: #f5f8f8 !important;
-        font-weight: 760 !important;
-    }
-
-    .stTabs [data-baseweb="tab-highlight"] {
-        display: none !important;
     }
 
     .activity-indicator {
@@ -1294,6 +1369,456 @@ st.markdown(
         font-size: 0.78rem;
     }
 
+    /* Monochrome institutional shell */
+    :root {
+        --bg: #020202;
+        --bg-2: #080808;
+        --panel: #030303;
+        --panel-2: #090909;
+        --panel-3: #111111;
+        --line: rgba(255, 255, 255, 0.18);
+        --line-strong: rgba(255, 255, 255, 0.34);
+        --text: #f5f5f5;
+        --muted: #b7b7b7;
+        --faint: #7a7a7a;
+        --accent: #f4f4f4;
+        --accent-2: #d8d8d8;
+        --warn: #f4f4f4;
+        --danger: #f4f4f4;
+        --success: #f4f4f4;
+        --shadow: none;
+    }
+
+    html, body, .stApp, div[data-testid="stAppViewContainer"] {
+        background: #020202 !important;
+        color: #f5f5f5 !important;
+    }
+
+    .block-container {
+        max-width: 1536px !important;
+        padding: 1.55rem 2.6rem 3rem 2.6rem !important;
+    }
+
+    section[data-testid="stSidebar"],
+    .app-rail,
+    div[data-testid="stRadio"]:has(div[role="radiogroup"][aria-label="Primary Navigation"]),
+    button[data-testid="stExpandSidebarButton"],
+    div[data-testid="stSidebarCollapseButton"] {
+        display: none !important;
+    }
+
+    div[data-testid="stElementContainer"]:has(.app-rail) {
+        display: none !important;
+    }
+
+    div[data-testid="stRadio"]:has(div[role="radiogroup"][aria-label="Section Navigation"]) {
+        position: static !important;
+        width: 100% !important;
+        overflow-x: auto !important;
+        padding: 0 0 1.1rem 0 !important;
+        margin: 0 0 3.2rem 0 !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.20) !important;
+        z-index: auto !important;
+    }
+
+    div[data-testid="stRadio"]:has(div[role="radiogroup"][aria-label="Section Navigation"]) div[role="radiogroup"] {
+        display: flex !important;
+        gap: 2.25rem !important;
+        width: max-content !important;
+        padding: 0 !important;
+        background: transparent !important;
+        border: 0 !important;
+        box-shadow: none !important;
+    }
+
+    div[data-testid="stRadio"]:has(div[role="radiogroup"][aria-label="Section Navigation"]) label[data-baseweb="radio"] {
+        position: relative;
+        height: 42px !important;
+        min-width: auto !important;
+        padding: 0 0.2rem !important;
+        background: transparent !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        color: #d4d4d4 !important;
+        font-weight: 500 !important;
+        margin: 0 !important;
+    }
+
+    div[data-testid="stRadio"]:has(div[role="radiogroup"][aria-label="Section Navigation"]) label[data-baseweb="radio"] > div:first-child {
+        display: none !important;
+    }
+
+    div[data-testid="stRadio"]:has(div[role="radiogroup"][aria-label="Section Navigation"]) label[data-baseweb="radio"] p {
+        color: inherit !important;
+        font-size: 0.98rem !important;
+        font-weight: 520 !important;
+        white-space: nowrap !important;
+    }
+
+    div[data-testid="stRadio"]:has(div[role="radiogroup"][aria-label="Section Navigation"]) label[data-baseweb="radio"]:hover {
+        color: #ffffff !important;
+        background: transparent !important;
+    }
+
+    div[data-testid="stRadio"]:has(div[role="radiogroup"][aria-label="Section Navigation"]) label[data-baseweb="radio"]:has(input:checked) {
+        color: #ffffff !important;
+        background: transparent !important;
+        border: 0 !important;
+        box-shadow: none !important;
+    }
+
+    div[data-testid="stRadio"]:has(div[role="radiogroup"][aria-label="Section Navigation"]) label[data-baseweb="radio"]:has(input:checked)::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: -1.1rem;
+        height: 2px;
+        background: #f5f5f5;
+        border-radius: 999px;
+    }
+
+    .top-shell {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: start;
+        gap: 2rem;
+        margin-bottom: 2.45rem;
+    }
+
+    .spacex-title {
+        color: #f6f6f6;
+        font-size: 2.28rem;
+        line-height: 1.05;
+        font-weight: 780;
+        letter-spacing: -0.01em;
+        margin: 0;
+    }
+
+    div[data-testid="stPopover"] {
+        position: static !important;
+        width: auto !important;
+        margin: 0 !important;
+    }
+
+    div[data-testid="stPopover"] button {
+        min-height: 56px !important;
+        height: 56px !important;
+        width: auto !important;
+        padding: 0 1.8rem !important;
+        border: 1px solid rgba(255, 255, 255, 0.78) !important;
+        border-radius: 10px !important;
+        background: #020202 !important;
+        color: #f5f5f5 !important;
+        box-shadow: none !important;
+        font-size: 0.98rem !important;
+        font-weight: 520 !important;
+    }
+
+    div[data-testid="stPopover"] button * {
+        display: initial !important;
+        color: inherit !important;
+    }
+
+    div[data-testid="stPopover"] button p {
+        display: block !important;
+        margin: 0 !important;
+    }
+
+    div[data-testid="stPopover"] button p + div,
+    div[data-testid="stPopover"] button [data-testid="stIconMaterial"] {
+        display: none !important;
+    }
+
+    div[data-testid="stPopover"] button::before {
+        content: "";
+        display: none;
+    }
+
+    div[data-testid="stPopover"] button:hover {
+        background: #111111 !important;
+        border-color: #ffffff !important;
+        color: #ffffff !important;
+        transform: none !important;
+    }
+
+    div[data-testid="stPopover"] [data-testid="stPopoverBody"] {
+        background: #050505 !important;
+        border: 1px solid rgba(255, 255, 255, 0.24) !important;
+        border-radius: 12px !important;
+    }
+
+    .reference-shell,
+    .reference-header,
+    .reference-market-pill {
+        display: none !important;
+    }
+
+    .ref-card,
+    .metric-card,
+    .intel-card,
+    .copilot-panel,
+    .market-panel,
+    div[data-testid="stMetric"] {
+        background: #030303 !important;
+        border: 1px solid rgba(255, 255, 255, 0.20) !important;
+        border-radius: 10px !important;
+        box-shadow: none !important;
+        color: #f5f5f5 !important;
+    }
+
+    .ref-kpi {
+        min-height: 148px;
+        padding: 2rem 1.9rem;
+    }
+
+    .ref-kpi-label,
+    .metric-label {
+        color: #d7d7d7 !important;
+        font-size: 0.92rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.01em;
+        margin-bottom: 1.45rem;
+    }
+
+    .ref-kpi-value,
+    .metric-value {
+        color: #ffffff !important;
+        font-size: 1.9rem;
+        font-weight: 760;
+    }
+
+    .ref-kpi-note,
+    .metric-note,
+    .settings-note,
+    .sidebar-note,
+    .intel-note {
+        color: #c9c9c9 !important;
+    }
+
+    .panel-card {
+        min-height: 330px;
+        padding: 2rem;
+    }
+
+    .panel-card.short {
+        min-height: 136px;
+        padding: 2rem;
+    }
+
+    .panel-title {
+        color: #ffffff !important;
+        font-size: 1.18rem;
+        font-weight: 700;
+        margin-bottom: 1.6rem;
+    }
+
+    .overview-grid {
+        grid-template-columns: 1.25fr 0.9fr 0.92fr;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .overview-bottom-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1rem;
+    }
+
+    .factor-row,
+    .risk-row {
+        color: #eeeeee !important;
+        font-size: 1rem;
+    }
+
+    .factor-bar {
+        background: #151515 !important;
+    }
+
+    .factor-bar span,
+    .legend-line::before {
+        background: #f5f5f5 !important;
+        box-shadow: none !important;
+    }
+
+    .legend-line.spy::before,
+    .risk-toggle {
+        background: #777777 !important;
+    }
+
+    .empty-chart {
+        color: #f1f1f1 !important;
+        background:
+            linear-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.055) 1px, transparent 1px) !important;
+        background-size: 100% 45px, 86px 100% !important;
+        border-radius: 0;
+    }
+
+    div[data-testid="stButton"] button,
+    div[data-testid="stDownloadButton"] button {
+        background: #050505 !important;
+        border: 1px solid rgba(255, 255, 255, 0.42) !important;
+        border-radius: 9px !important;
+        color: #f5f5f5 !important;
+        box-shadow: none !important;
+        font-weight: 520 !important;
+    }
+
+    div[data-testid="stButton"] button *,
+    div[data-testid="stDownloadButton"] button *,
+    .stButton > button *,
+    .stDownloadButton > button * {
+        color: #f5f5f5 !important;
+        fill: #f5f5f5 !important;
+        font-weight: 620 !important;
+    }
+
+    div[data-testid="stButton"] button:hover,
+    div[data-testid="stDownloadButton"] button:hover {
+        background: #111111 !important;
+        border-color: #ffffff !important;
+        color: #ffffff !important;
+    }
+
+    div[data-testid="stButton"] button:hover *,
+    div[data-testid="stDownloadButton"] button:hover *,
+    .stButton > button:hover *,
+    .stDownloadButton > button:hover * {
+        color: #ffffff !important;
+        fill: #ffffff !important;
+    }
+
+    div[data-testid="stButton"] button:disabled,
+    div[data-testid="stDownloadButton"] button:disabled,
+    .stButton > button:disabled,
+    .stDownloadButton > button:disabled,
+    button:disabled,
+    button[disabled],
+    button[aria-disabled="true"] {
+        background: #030303 !important;
+        border-color: rgba(255, 255, 255, 0.32) !important;
+        color: #bdbdbd !important;
+        opacity: 1 !important;
+        cursor: not-allowed !important;
+        box-shadow: none !important;
+    }
+
+    div[data-testid="stButton"] button:disabled *,
+    div[data-testid="stDownloadButton"] button:disabled *,
+    .stButton > button:disabled *,
+    .stDownloadButton > button:disabled *,
+    button:disabled *,
+    button[disabled] *,
+    button[aria-disabled="true"] * {
+        color: #bdbdbd !important;
+        fill: #bdbdbd !important;
+        opacity: 1 !important;
+    }
+
+    input,
+    textarea,
+    div[data-baseweb="select"] > div,
+    div[data-baseweb="input"] > div {
+        background: #080808 !important;
+        color: #f5f5f5 !important;
+        border-color: rgba(255, 255, 255, 0.24) !important;
+    }
+
+    .stTextArea textarea,
+    .stTextInput input,
+    .stNumberInput input,
+    .stDateInput input,
+    div[data-baseweb="select"] span,
+    div[data-baseweb="select"] input,
+    div[data-baseweb="textarea"] textarea,
+    div[data-baseweb="popover"],
+    div[data-baseweb="menu"],
+    label,
+    [data-testid="stCheckbox"] label,
+    [data-testid="stCheckbox"] label *,
+    [data-testid="stSelectbox"] label,
+    [data-testid="stTextInput"] label,
+    [data-testid="stNumberInput"] label,
+    [data-testid="stDateInput"] label,
+    [data-testid="stTextArea"] label {
+        color: #e4e4e4 !important;
+    }
+
+    .stTextArea textarea::placeholder,
+    .stTextInput input::placeholder,
+    .stNumberInput input::placeholder {
+        color: #9f9f9f !important;
+    }
+
+    [data-baseweb="checkbox"] span,
+    [data-baseweb="checkbox"] div {
+        color: #e4e4e4 !important;
+        border-color: rgba(255, 255, 255, 0.34) !important;
+    }
+
+    div[role="radiogroup"][aria-label="Section Navigation"] label[data-baseweb="radio"] p {
+        color: #d4d4d4 !important;
+    }
+
+    div[role="radiogroup"][aria-label="Section Navigation"] label[data-baseweb="radio"]:hover p,
+    div[role="radiogroup"][aria-label="Section Navigation"] label[data-baseweb="radio"]:has(input:checked) p {
+        color: #ffffff !important;
+    }
+
+    div[data-testid="stDataFrame"],
+    div[data-testid="stTable"],
+    div[data-testid="stAlert"] {
+        background: #050505 !important;
+        border: 1px solid rgba(255, 255, 255, 0.20) !important;
+        color: #f5f5f5 !important;
+        border-radius: 10px !important;
+    }
+
+    div[data-testid="stAlert"] svg,
+    div[data-testid="stCheckbox"] svg,
+    div[data-baseweb="select"] svg {
+        color: #f5f5f5 !important;
+        fill: #f5f5f5 !important;
+    }
+
+    *:focus,
+    *:focus-visible {
+        outline-color: #f5f5f5 !important;
+        box-shadow: none !important;
+    }
+
+    .activity-indicator.processing {
+        background: #050505 !important;
+        border: 1px solid rgba(255, 255, 255, 0.26) !important;
+        box-shadow: none !important;
+    }
+
+    .activity-orbit {
+        border-color: rgba(255, 255, 255, 0.22) !important;
+        border-top-color: #f5f5f5 !important;
+    }
+
+    .activity-label {
+        color: #ffffff !important;
+    }
+
+    .activity-sub {
+        color: #bdbdbd !important;
+    }
+
+    .ticker-chip {
+        border: 1px solid rgba(255, 255, 255, 0.28) !important;
+        background: #080808 !important;
+        color: #f5f5f5 !important;
+    }
+
+    code {
+        color: #f2f2f2 !important;
+        background: #111111 !important;
+    }
+
     @media (max-width: 1180px) {
         .overview-kpis,
         .overview-grid,
@@ -1301,13 +1826,18 @@ st.markdown(
             grid-template-columns: 1fr;
         }
         .block-container {
-            padding-left: 6.7rem !important;
+            padding-left: 1.2rem !important;
+            padding-right: 1.2rem !important;
         }
-        .stTabs [data-baseweb="tab-list"] {
-            left: 7.4rem !important;
-            gap: 0.55rem !important;
+        div[data-testid="stRadio"]:has(div[role="radiogroup"][aria-label="Section Navigation"]) div[role="radiogroup"] {
+            gap: 1.25rem !important;
             overflow-x: auto;
-            max-width: calc(100vw - 8.5rem);
+        }
+        .top-shell {
+            grid-template-columns: 1fr;
+        }
+        .spacex-title {
+            font-size: 1.9rem;
         }
     }
     </style>
@@ -1367,13 +1897,15 @@ def _need_data() -> bool:
 
 
 def _style_chart(fig, height: int = 360):
+    if fig.layout.title is None or fig.layout.title.text in {None, "undefined"}:
+        fig.update_layout(title_text="")
     fig.update_layout(
         template="plotly_dark",
         height=height,
         paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="#0c141c",
-        font={"color": "#dce7e4", "family": "Segoe UI, Inter, system-ui, sans-serif", "size": 12},
-        title={"font": {"size": 15, "color": "#edf4f2"}, "x": 0.01},
+        plot_bgcolor="#030303",
+        font={"color": "#f0f0f0", "family": "Segoe UI, Inter, system-ui, sans-serif", "size": 12},
+        title={"font": {"size": 15, "color": "#ffffff"}, "x": 0.01},
         colorway=CHART_COLORS,
         legend={
             "orientation": "h",
@@ -1381,24 +1913,24 @@ def _style_chart(fig, height: int = 360):
             "y": 1.02,
             "xanchor": "right",
             "x": 1,
-            "font": {"color": "#b7c5cc"},
+            "font": {"color": "#d6d6d6"},
         },
         margin={"l": 36, "r": 18, "t": 54, "b": 36},
-        hoverlabel={"bgcolor": "#111b24", "font_color": "#edf4f2", "bordercolor": "#334655"},
+        hoverlabel={"bgcolor": "#080808", "font_color": "#ffffff", "bordercolor": "#4a4a4a"},
     )
     fig.update_xaxes(
-        gridcolor="rgba(148,163,184,0.12)",
-        linecolor="rgba(148,163,184,0.25)",
-        tickfont={"color": "#aebdc4"},
-        title_font={"color": "#b7c5cc"},
-        zerolinecolor="rgba(148,163,184,0.16)",
+        gridcolor="rgba(255,255,255,0.08)",
+        linecolor="rgba(255,255,255,0.22)",
+        tickfont={"color": "#d2d2d2"},
+        title_font={"color": "#d6d6d6"},
+        zerolinecolor="rgba(255,255,255,0.12)",
     )
     fig.update_yaxes(
-        gridcolor="rgba(148,163,184,0.12)",
-        linecolor="rgba(148,163,184,0.25)",
-        tickfont={"color": "#aebdc4"},
-        title_font={"color": "#b7c5cc"},
-        zerolinecolor="rgba(148,163,184,0.16)",
+        gridcolor="rgba(255,255,255,0.08)",
+        linecolor="rgba(255,255,255,0.22)",
+        tickfont={"color": "#d2d2d2"},
+        title_font={"color": "#d6d6d6"},
+        zerolinecolor="rgba(255,255,255,0.12)",
     )
     return fig
 
@@ -1444,19 +1976,62 @@ def _update_activity(slot, mode: str, label: str) -> None:
     slot.markdown(_activity_html(mode, label), unsafe_allow_html=True)
 
 
-def _render_rail() -> None:
+def _normalise_page(page: str | None) -> str:
+    if page in PAGES:
+        return page
+    if page:
+        return PAGE_SLUGS.get(str(page).lower().replace(" ", "-"), "Overview")
+    return "Overview"
+
+
+def _sync_from_rail() -> None:
+    page = _normalise_page(st.session_state.get("rail_page"))
+    st.session_state.active_page = page
+    st.session_state.bottom_page = page
+
+
+def _sync_from_bottom() -> None:
+    page = _normalise_page(st.session_state.get("bottom_page"))
+    st.session_state.active_page = page
+    st.session_state.rail_page = page
+
+
+def _active_page() -> str:
+    page = _normalise_page(st.session_state.get("active_page"))
+    st.session_state.active_page = page
+    st.session_state.rail_page = page
+    st.session_state.bottom_page = page
+    return page
+
+
+def _render_rail(active_page: str) -> None:
     st.markdown(
         """
         <nav class="app-rail" aria-label="Primary">
-            <div class="rail-icon active" title="Overview">O</div>
-            <div class="rail-icon" title="Data">D</div>
-            <div class="rail-icon" title="Factors">F</div>
-            <div class="rail-icon" title="Backtest">B</div>
-            <div class="rail-icon" title="Risk Analytics">R</div>
-            <div class="rail-icon" title="AI Research Report">AI</div>
         </nav>
         """,
         unsafe_allow_html=True,
+    )
+    st.radio(
+        "Primary Navigation",
+        PAGES,
+        index=PAGES.index(active_page),
+        key="rail_page",
+        format_func=lambda page: RAIL_ICONS.get(page, page),
+        label_visibility="collapsed",
+        on_change=_sync_from_rail,
+    )
+
+
+def _render_bottom_nav(active_page: str) -> None:
+    st.radio(
+        "Section Navigation",
+        PAGES,
+        index=PAGES.index(active_page),
+        key="bottom_page",
+        horizontal=True,
+        label_visibility="collapsed",
+        on_change=_sync_from_bottom,
     )
 
 
@@ -1558,6 +2133,8 @@ def _popular_actions_html() -> str:
     return (
         '<div class="ref-card panel-card short"><div class="panel-title">Popular Actions</div><div class="action-row">'
         '<span class="action-chip"><span class="action-icon">LD</span>Load Data</span>'
+        '<span class="action-chip"><span class="action-icon">MD</span>Market Dashboard</span>'
+        '<span class="action-chip"><span class="action-icon">TI</span>Trade Ideas</span>'
         '<span class="action-chip"><span class="action-icon">BT</span>Run Backtest</span>'
         '<span class="action-chip"><span class="action-icon">VF</span>View Factors</span>'
         '<span class="action-chip"><span class="action-icon">AI</span>AI Research Report</span>'
@@ -1585,7 +2162,7 @@ def _render_overview(benchmark: str) -> None:
     with o1:
         result = st.session_state.get("backtest_result")
         if result:
-            st.markdown('<div class="ref-card panel-card"><div class="panel-title">Performance (vs SPY)</div>', unsafe_allow_html=True)
+            st.markdown('<div class="panel-title">Performance (vs SPY)</div>', unsafe_allow_html=True)
             equity = result["equity_curve"].copy()
             chart_cols = ["date", "portfolio_value"]
             if equity["benchmark_value"].notna().any():
@@ -1595,7 +2172,6 @@ def _render_overview(benchmark: str) -> None:
                 _style_chart(px.line(chart_data, x="date", y="value", color="series"), height=216),
                 use_container_width=True,
             )
-            st.markdown("</div>", unsafe_allow_html=True)
         else:
             st.markdown(_performance_placeholder_html(), unsafe_allow_html=True)
     with o2:
@@ -1603,20 +2179,16 @@ def _render_overview(benchmark: str) -> None:
     with o3:
         st.markdown(_risk_snapshot_html(benchmark), unsafe_allow_html=True)
 
-    b1, b2 = st.columns([0.74, 1.16], gap="medium")
     status_value, status_note = _overview_status()
-    with b1:
-        st.markdown(
-            f"""
-            <div class="ref-card panel-card short">
-                <div class="panel-title">Get Started</div>
-                <div class="ref-kpi-note" style="font-size:1rem;">{escape(status_note if status_value != "Awaiting Data" else "Load data to generate insights and reports.")}</div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-    with b2:
-        st.markdown(_popular_actions_html(), unsafe_allow_html=True)
+    st.markdown(
+        f"""
+        <div class="ref-card panel-card short">
+            <div class="panel-title">Get Started</div>
+            <div class="ref-kpi-note" style="font-size:1.02rem;">{escape(status_note if status_value != "Awaiting Data" else "Load data to generate insights and reports.")} &nbsp; -></div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 def _kpi_values() -> list[tuple[str, str, str]]:
@@ -1797,6 +2369,192 @@ def _render_command_center(benchmark: str) -> None:
     )
 
 
+def _ensure_market_dashboard_data(refresh: bool = False) -> pd.DataFrame:
+    if refresh or "market_dashboard_data" not in st.session_state:
+        _update_activity(activity_slot, "processing", "Loading market dashboard")
+        try:
+            st.session_state.market_dashboard_data = load_market_dashboard_data(refresh=refresh)
+            _update_activity(activity_slot, "ready", "Market dashboard ready")
+        except Exception as exc:
+            st.session_state.market_dashboard_data = pd.DataFrame()
+            _update_activity(activity_slot, "ready", "Market dashboard unavailable")
+            st.warning(f"Market dashboard data could not be loaded: {exc}")
+    return st.session_state.get("market_dashboard_data", pd.DataFrame())
+
+
+def _render_market_dashboard() -> None:
+    _tab_header("Market Dashboard", "Cross-asset monitor for equity indices, rates, FX, commodities, and volatility.")
+    refresh_market = st.button("Refresh market dashboard", use_container_width=False)
+    market_data = _ensure_market_dashboard_data(refresh=refresh_market)
+
+    if market_data.empty:
+        st.info("Market dashboard data is unavailable. Check network access or try refreshing later.")
+        return
+
+    snapshot = market_snapshot(market_data)
+    st.caption(interpret_market_conditions(snapshot))
+    card_cols = st.columns(4)
+    for idx, row in enumerate(snapshot.head(8).itertuples()):
+        move = _pct(row.daily_move)
+        trend = _pct(row.trend_1m)
+        with card_cols[idx % 4]:
+            st.markdown(
+                _overview_card(
+                    str(row.instrument),
+                    f"{float(row.level):,.2f}" if pd.notna(row.level) else "n/a",
+                    f"Day {move} | 1m {trend}",
+                ),
+                unsafe_allow_html=True,
+            )
+
+    trends = normalised_market_trends(market_data)
+    if not trends.empty:
+        st.plotly_chart(
+            _style_chart(
+                px.line(
+                    trends,
+                    x="date",
+                    y="normalised_level",
+                    color="instrument",
+                    title="Cross-Asset Recent Trend, Indexed to 100",
+                ),
+                height=390,
+            ),
+            use_container_width=True,
+        )
+
+    table = snapshot.copy()
+    table["daily_move"] = table["daily_move"].map(_pct)
+    table["trend_1m"] = table["trend_1m"].map(_pct)
+    table["level"] = table["level"].map(lambda x: f"{x:,.2f}" if pd.notna(x) else "n/a")
+    st.dataframe(table, use_container_width=True, hide_index=True)
+
+
+def _format_trade_ideas(ideas: pd.DataFrame) -> pd.DataFrame:
+    if ideas.empty:
+        return ideas
+    formatted = ideas.copy()
+    for col in ["entry_price", "target", "stop_loss"]:
+        formatted[col] = formatted[col].map(lambda x: f"{x:,.2f}" if pd.notna(x) else "n/a")
+    for col in ["expected_upside", "expected_downside"]:
+        formatted[col] = formatted[col].map(_pct)
+    formatted["risk_reward"] = formatted["risk_reward"].map(lambda x: f"{x:.2f}x" if pd.notna(x) else "n/a")
+    formatted["signal_strength"] = formatted["signal_strength"].map(lambda x: f"{x:.0f}/100" if pd.notna(x) else "n/a")
+    return formatted
+
+
+def _render_trade_ideas(benchmark: str) -> None:
+    _tab_header("Trade Ideas", "Educational factor-driven ideas with transparent risk/reward bands.")
+    if _need_data():
+        st.info("Load a universe first to generate trade ideas.")
+        return
+
+    factor_data = st.session_state.get("factor_data")
+    if factor_data is None or factor_data.empty:
+        _update_activity(activity_slot, "processing", "Calculating factors")
+        factor_data = calculate_factors(st.session_state.price_data)
+        st.session_state.factor_data = factor_data
+        _update_activity(activity_slot, "ready", "Factors ready")
+
+    max_ideas = st.slider("Number of ideas", min_value=3, max_value=12, value=8)
+    ideas = generate_trade_ideas(st.session_state.price_data, factor_data, benchmark_ticker=benchmark or "SPY", max_ideas=max_ideas)
+    if ideas.empty:
+        st.warning("No trade ideas could be generated. The universe may need more price history.")
+        return
+
+    long_count = int((ideas["direction"] == "Long").sum())
+    short_count = int((ideas["direction"] == "Short").sum())
+    neutral_count = int((ideas["direction"] == "Neutral").sum())
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("Ideas", len(ideas))
+    c2.metric("Long", long_count)
+    c3.metric("Short", short_count)
+    c4.metric("Neutral", neutral_count)
+
+    st.caption("Research output only. Indicative targets and stops are volatility-scaled references, not recommendations.")
+    display_cols = [
+        "ticker",
+        "direction",
+        "signal_strength",
+        "horizon",
+        "rationale",
+        "supporting_factors",
+        "main_risk",
+        "entry_price",
+        "target",
+        "stop_loss",
+        "expected_upside",
+        "expected_downside",
+        "risk_reward",
+        "volatility_context",
+    ]
+    st.dataframe(_format_trade_ideas(ideas[display_cols]), use_container_width=True, hide_index=True)
+
+    chart_source = ideas[["ticker", "signal_strength", "direction"]].copy()
+    st.plotly_chart(
+        _style_chart(px.bar(chart_source, x="ticker", y="signal_strength", color="direction", title="Trade Idea Signal Strength"), height=330),
+        use_container_width=True,
+    )
+
+    st.download_button(
+        "Download trade ideas CSV",
+        data=ideas.to_csv(index=False),
+        file_name="trade_ideas.csv",
+        mime="text/csv",
+        use_container_width=True,
+    )
+
+
+def _render_market_brief(benchmark: str) -> None:
+    _tab_header("Market Brief", "AI-assisted morning brief from cross-asset dashboard data and local factor signals.")
+    market_data = _ensure_market_dashboard_data(refresh=False)
+    if market_data.empty:
+        st.info("Market dashboard data is unavailable. Refresh the market dashboard and try again.")
+        return
+
+    price_data = st.session_state.get("price_data", pd.DataFrame())
+    factor_data = st.session_state.get("factor_data", pd.DataFrame())
+    if not price_data.empty and (factor_data is None or factor_data.empty):
+        _update_activity(activity_slot, "processing", "Calculating factors")
+        factor_data = calculate_factors(price_data)
+        st.session_state.factor_data = factor_data
+        _update_activity(activity_slot, "ready", "Factors ready")
+
+    use_llm = st.checkbox("Use optional OpenAI-compatible API if configured", value=False, key="market_brief_use_llm")
+    if st.button("Generate market brief", use_container_width=True):
+        _update_activity(activity_slot, "processing", "Generating market brief")
+        try:
+            st.session_state.market_brief_text = generate_market_brief(
+                price_data,
+                factor_data,
+                market_data,
+                benchmark_ticker=benchmark or "SPY",
+                use_llm=use_llm,
+            )
+            _update_activity(activity_slot, "ready", "Market brief generated")
+        except Exception as exc:
+            _update_activity(activity_slot, "ready", "Market brief failed")
+            st.error(str(exc))
+
+    if "market_brief_text" not in st.session_state:
+        st.session_state.market_brief_text = generate_market_brief(
+            price_data,
+            factor_data,
+            market_data,
+            benchmark_ticker=benchmark or "SPY",
+            use_llm=False,
+        )
+    brief = st.session_state.market_brief_text
+    st.markdown(brief)
+    st.download_button(
+        "Download market brief",
+        data=brief,
+        file_name="market_brief.md",
+        mime="text/markdown",
+        use_container_width=True,
+    )
+
+
 def _tab_header(title: str, subtitle: str) -> None:
     st.markdown(f"### {title}")
     st.caption(subtitle)
@@ -1809,7 +2567,7 @@ if "activity_label" not in st.session_state:
 activity_slot = st.empty()
 _update_activity(activity_slot, st.session_state.activity_mode, st.session_state.activity_label)
 
-_render_rail()
+active_page = _active_page()
 
 if "control_tickers" not in st.session_state:
     st.session_state.control_tickers = DEFAULT_TICKERS
@@ -1820,25 +2578,32 @@ if "control_start" not in st.session_state:
 if "control_end" not in st.session_state:
     st.session_state.control_end = pd.Timestamp.today()
 
-with st.popover("Menu", help="Open research settings"):
-    st.markdown("#### Research Settings")
-    st.markdown('<div class="settings-note">Universe, benchmark, dates, and local cache controls.</div>', unsafe_allow_html=True)
-    ticker_text = st.text_area("Ticker universe", height=118, key="control_tickers")
-    parsed_tickers = normalize_tickers(st.session_state.control_tickers)
-    if parsed_tickers:
-        chips = "".join(f'<span class="ticker-chip">{ticker}</span>' for ticker in parsed_tickers[:16])
-        if len(parsed_tickers) > 16:
-            chips += f'<span class="ticker-chip">+{len(parsed_tickers) - 16}</span>'
-        st.markdown(chips, unsafe_allow_html=True)
-        st.markdown(f'<div class="sidebar-note">{len(parsed_tickers)} securities parsed for local factor research.</div>', unsafe_allow_html=True)
+_render_bottom_nav(active_page)
 
-    benchmark_input = st.text_input("Benchmark", key="control_benchmark")
-    date_cols = st.columns(2)
-    start_date = date_cols[0].date_input("Start", key="control_start")
-    end_date = date_cols[1].date_input("End", key="control_end")
+title_col, load_col = st.columns([1, 0.22], vertical_alignment="top")
+with title_col:
+    st.markdown('<h1 class="spacex-title">Quant Research Platform</h1>', unsafe_allow_html=True)
 
-    refresh = st.checkbox("Refresh market data", value=False)
-    run_data = st.button("Load market data", use_container_width=True)
+with load_col:
+    with st.popover("Load Market Data", help="Open market data controls"):
+        st.markdown("#### Market Data")
+        st.markdown('<div class="settings-note">Universe, benchmark, dates, and local cache controls.</div>', unsafe_allow_html=True)
+        ticker_text = st.text_area("Ticker universe", height=118, key="control_tickers")
+        parsed_tickers = normalize_tickers(st.session_state.control_tickers)
+        if parsed_tickers:
+            chips = "".join(f'<span class="ticker-chip">{ticker}</span>' for ticker in parsed_tickers[:16])
+            if len(parsed_tickers) > 16:
+                chips += f'<span class="ticker-chip">+{len(parsed_tickers) - 16}</span>'
+            st.markdown(chips, unsafe_allow_html=True)
+            st.markdown(f'<div class="sidebar-note">{len(parsed_tickers)} securities parsed for local factor research.</div>', unsafe_allow_html=True)
+
+        benchmark_input = st.text_input("Benchmark", key="control_benchmark")
+        date_cols = st.columns(2)
+        start_date = date_cols[0].date_input("Start", key="control_start")
+        end_date = date_cols[1].date_input("End", key="control_end")
+
+        refresh = st.checkbox("Refresh market data", value=False)
+        run_data = st.button("Load market data", use_container_width=True)
 
 parsed_tickers = normalize_tickers(st.session_state.control_tickers)
 benchmark = str(st.session_state.control_benchmark).strip().upper()
@@ -1869,33 +2634,16 @@ if run_data:
             _update_activity(activity_slot, "ready", "Action failed")
             st.error(str(exc))
 
-status_text, status_mode = _status_label()
-dot_class = "" if status_mode == "ready" else " idle"
-regime_label, _ = _market_regime(benchmark)
-st.markdown(
-    f"""
-    <section class="reference-shell">
-        <header class="reference-header">
-            <div class="reference-title-row">
-                <div class="reference-title">Quant Research Platform</div>
-                <div class="reference-page-label">Overview</div>
-            </div>
-            <div class="reference-market-pill"><span></span>Market: {escape(regime_label)}</div>
-        </header>
-    </section>
-    """,
-    unsafe_allow_html=True,
-)
-
-tabs = st.tabs(["Overview", "Data", "Factors", "Backtest", "Risk Analytics", "AI Research Report"])
-
-with tabs[0]:
+if active_page == "Overview":
     _render_overview(benchmark)
 
-with tabs[1]:
+elif active_page == "Market Dashboard":
+    _render_market_dashboard()
+
+elif active_page == "Data":
     _tab_header("Data", "Cached market data, adjusted close history, and clean OHLCV preview.")
     if _need_data():
-        st.info("Load market data from the sidebar to start.")
+        st.info("Use Load Market Data to start.")
     else:
         price_data = st.session_state.price_data
         c1, c2, c3, c4 = st.columns(4)
@@ -1913,7 +2661,7 @@ with tabs[1]:
         st.caption("Recent normalised OHLCV records")
         st.dataframe(price_data.tail(500), use_container_width=True, hide_index=True)
 
-with tabs[2]:
+elif active_page == "Factors":
     _tab_header("Factors", "Cross-sectional signal rankings, latest factor values, and single-name factor history.")
     if _need_data():
         st.info("Load market data first.")
@@ -1964,7 +2712,7 @@ with tabs[2]:
                 z = z.replace([np.inf, -np.inf], np.nan).fillna(0.0)
                 fig = px.imshow(
                     z.T,
-                    color_continuous_scale=["#ef7e8e", "#17222d", "#58d5b7"],
+                    color_continuous_scale=["#111111", "#777777", "#f5f5f5"],
                     aspect="auto",
                     title="Latest Factor Z-Score Heatmap",
                 )
@@ -1991,7 +2739,10 @@ with tabs[2]:
                     use_container_width=True,
                 )
 
-with tabs[3]:
+elif active_page == "Trade Ideas":
+    _render_trade_ideas(benchmark)
+
+elif active_page == "Backtest":
     _tab_header("Backtest", "Configure factor strategy construction, rebalance cadence, benchmark, and capital base.")
     if _need_data():
         st.info("Load market data first.")
@@ -2070,7 +2821,7 @@ with tabs[3]:
             d2.download_button("Download metrics CSV", data=metrics_frame.to_csv(index=False), file_name="backtest_metrics.csv", mime="text/csv", use_container_width=True)
             d3.download_button("Download metrics text", data=markdown_to_text(metrics_to_markdown(metrics_frame)), file_name="backtest_metrics.txt", mime="text/plain", use_container_width=True)
 
-with tabs[4]:
+elif active_page == "Risk Analytics":
     _tab_header("Risk Analytics", "Performance, tail risk, rolling risk, drawdown, and benchmark-relative comparison.")
     result = st.session_state.get("backtest_result")
     if not result:
@@ -2103,7 +2854,7 @@ with tabs[4]:
         if not trades.empty:
             st.dataframe(trades.tail(200), use_container_width=True, hide_index=True)
 
-with tabs[5]:
+elif active_page == "AI Research Report":
     _tab_header("AI Research Report", "Deterministic institutional equity note with optional OpenAI-compatible enhancement.")
     if _need_data():
         st.info("Load market data first.")
@@ -2156,3 +2907,6 @@ with tabs[5]:
                     mime="text/plain",
                     use_container_width=True,
                 )
+
+elif active_page == "Market Brief":
+    _render_market_brief(benchmark)

@@ -1,0 +1,23 @@
+{
+  "name": "quant-research-platform-with-an-ai-research-assistant-layer",
+  "version": "1.0.0",
+  "description": "A local-first MVP for equity factor research. It downloads and caches market data, calculates factor signals, backtests long-only factor strategies, evaluates risk and performance, and generates institutional-style equity research reports with or without an LLM API key.",
+  "scripts": {
+    "screenshots": "node scripts/capture_readme_screenshots.cjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bb1021/quant-research-platform.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/bb1021/quant-research-platform/issues"
+  },
+  "homepage": "https://github.com/bb1021/quant-research-platform#readme",
+  "devDependencies": {
+    "playwright": "^1.60.0"
+  }
+}

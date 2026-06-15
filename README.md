@@ -1,6 +1,18 @@
 # Quant Research Platform with AI Research Assistant
 
-A local-first MVP for equity factor research. It downloads and caches market data, calculates factor signals, backtests long-only factor strategies, evaluates risk and performance, and generates institutional-style equity research reports with or without an LLM API key.
+A local-first MVP for equity and markets research. It downloads and caches market data, monitors cross-asset market instruments, calculates factor signals, generates explainable trade ideas, backtests long-only factor strategies, evaluates risk and performance, and produces institutional-style research reports and market briefs with or without an LLM API key.
+
+## Screenshots
+
+![Overview dashboard](docs/screenshots/overview.png)
+
+![Data page](docs/screenshots/data.png)
+
+![Backtest page](docs/screenshots/backtest.png)
+
+![Risk Analytics page](docs/screenshots/risk-analytics.png)
+
+![AI Research Report page](docs/screenshots/ai-research-report.png)
 
 ## Why This Matters
 
@@ -10,8 +22,12 @@ Quant research workflows often split data ingestion, signal research, backtestin
 
 - Daily OHLCV ingestion from Yahoo Finance via `yfinance`
 - Local DuckDB cache with refresh support
+- J.P. Morgan Markets-aligned dashboard covering equity indices, FX, rates, commodities, oil, gold, and volatility proxies
+- Cross-asset market monitor with latest levels, daily moves, indexed trend charts, and desk-style market interpretation
 - Multi-ticker factor engine
 - Momentum, volatility, mean reversion, moving average, and relative strength signals
+- Factor-driven trade idea generation with Long, Short, and Neutral classifications
+- Transparent risk/reward analysis including reference entry, target, stop-loss, expected upside/downside, volatility context, and risk/reward ratio
 - Long-only top-N backtester with monthly, weekly, or daily rebalancing
 - Configurable starting capital, benchmark ticker, transaction costs, and top-N selection
 - Equal weight, inverse volatility, mean-variance, and risk parity weighting
@@ -21,8 +37,10 @@ Quant research workflows often split data ingestion, signal research, backtestin
 - CAGR, volatility, Sharpe, Sortino, drawdown, Calmar, beta, alpha, information ratio, win rate
 - Rolling volatility, rolling Sharpe, drawdown, VaR, CVaR
 - Streamlit dashboard with Data, Factors, Backtest, Risk Analytics, and AI Research Report tabs
+- Additional Market Dashboard, Trade Ideas, and Market Brief sections for global markets monitoring, research preparation, and desk-style commentary
 - Modern dark institutional-style dashboard with visible navigation, KPI cards, factor analytics, benchmark-aware backtesting, risk analytics, and AI-assisted equity reports
 - Deterministic research reports without paid APIs
+- Deterministic AI market brief covering market overview, key movers, risk sentiment, trade themes, and portfolio/risk implications
 - Optional OpenAI-compatible completion when environment variables are configured
 - Markdown, text, and CSV exports for reports, backtest summaries, and metrics
 
@@ -32,6 +50,7 @@ Quant research workflows often split data ingestion, signal research, backtestin
 app.py                         Streamlit dashboard
 src/data_loader.py             yfinance ingestion and DuckDB cache
 src/factors.py                 Factor calculations and rankings
+src/markets.py                 Market dashboard proxies, trade ideas, and market brief logic
 src/backtester.py              Signal-driven portfolio simulation
 src/portfolio.py               Portfolio construction methods
 src/metrics.py                 Performance metrics
@@ -90,13 +109,17 @@ The report generator works in two modes:
 
 Copy `.env.example` to `.env` if using an API. The app works without this step.
 
+## Markets Internship Relevance
+
+The platform is aligned with global markets work such as monitoring markets, developing trade ideas, preparing research, reviewing portfolio risk, and translating quantitative signals into concise desk-ready commentary. The Market Dashboard uses Yahoo Finance-compatible proxies for major indices, DXY, US 10-year yield, gold, WTI crude, and VIX. Trade ideas are educational research outputs and should not be interpreted as investment advice.
+
 ## Tests
 
 ```bash
 python -m pytest -q
 ```
 
-The tests cover data formatting and return calculation, factor ranking, Sharpe ratio, max drawdown, backtest output shape, a basic no-lookahead-bias case, missing benchmark handling, starting capital, and deterministic AI report generation without an API key.
+The tests cover data formatting and return calculation, factor ranking, Sharpe ratio, max drawdown, backtest output shape, a basic no-lookahead-bias case, missing benchmark handling, starting capital, deterministic AI report generation without an API key, trade idea generation, and fallback market brief generation.
 
 ## Limitations
 
@@ -118,3 +141,5 @@ The tests cover data formatting and return calculation, factor ranking, Sharpe r
 ## Suggested CV Bullet
 
 Built a full-stack quantitative research platform integrating market data ingestion, factor modelling, portfolio construction, benchmark-relative backtesting, risk analytics, and an AI-powered equity research assistant, with local data caching and an interactive Streamlit dashboard.
+
+Built a quantitative markets research platform integrating market data ingestion, factor-based trade signal generation, portfolio analytics, risk monitoring, benchmark-aware backtesting and an AI-driven market research assistant.
