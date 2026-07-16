@@ -34,30 +34,17 @@ st.set_page_config(
 )
 
 DEFAULT_TICKERS = "AAPL, MSFT, NVDA, AMZN, GOOGL, META, JPM, XOM, UNH, SPY"
-CHART_COLORS = ["#f4f4f4", "#b8b8b8", "#8f8f8f", "#6f6f6f", "#d8d8d8", "#a2a2a2", "#7d7d7d", "#c7c7c7"]
+CHART_COLORS = ["#2563eb", "#4b5563", "#6b7280", "#9ca3af", "#111827", "#64748b"]
 PAGES = [
-    "Overview",
-    "Market Dashboard",
-    "Data",
-    "Factors",
-    "Trade Ideas",
-    "Backtest",
-    "Risk Analytics",
-    "AI Research Report",
-    "Market Brief",
+    "Market Overview",
+    "Data Explorer",
+    "Strategy Backtest",
+    "Risk Analysis",
+    "Research Report",
+    "Settings",
 ]
 PAGE_SLUGS = {page.lower().replace(" ", "-"): page for page in PAGES}
-RAIL_ICONS = {
-    "Overview": "O",
-    "Market Dashboard": "M",
-    "Data": "D",
-    "Factors": "F",
-    "Trade Ideas": "TI",
-    "Backtest": "B",
-    "Risk Analytics": "R",
-    "AI Research Report": "AI",
-    "Market Brief": "MB",
-}
+PAGE_NUMBERS = {page: index + 1 for index, page in enumerate(PAGES)}
 
 
 st.markdown(
@@ -1840,6 +1827,339 @@ st.markdown(
             font-size: 1.9rem;
         }
     }
+
+    /* Graduate portfolio theme: simple Streamlit dashboard, light main, dark sidebar */
+    :root {
+        --page-bg: #f6f7f9;
+        --content-bg: #ffffff;
+        --sidebar-bg: #151922;
+        --sidebar-border: #303644;
+        --text-main: #111827;
+        --text-muted: #4b5563;
+        --border-soft: #d1d5db;
+        --accent-blue: #2563eb;
+    }
+
+    html, body, .stApp, div[data-testid="stAppViewContainer"] {
+        background: var(--page-bg) !important;
+        color: var(--text-main) !important;
+        font-family: Arial, Helvetica, sans-serif !important;
+    }
+
+    header[data-testid="stHeader"],
+    div[data-testid="stToolbar"],
+    footer {
+        visibility: hidden;
+        height: 0;
+    }
+
+    .block-container {
+        max-width: 1220px !important;
+        padding: 2.3rem 2.6rem 2.4rem 2.8rem !important;
+    }
+
+    section[data-testid="stSidebar"] {
+        display: block !important;
+        background: var(--sidebar-bg) !important;
+        border-right: 1px solid var(--sidebar-border) !important;
+        color: #ffffff !important;
+    }
+
+    section[data-testid="stSidebar"] * {
+        color: #ffffff !important;
+        font-family: Arial, Helvetica, sans-serif !important;
+    }
+
+    section[data-testid="stSidebar"] div[data-testid="stSidebarContent"] {
+        padding: 1.1rem 0.9rem 1rem !important;
+    }
+
+    .sidebar-title {
+        font-size: 1.15rem;
+        font-weight: 700;
+        line-height: 1.22;
+        margin: 0.25rem 0 1.55rem;
+    }
+
+    .sidebar-rule {
+        height: 1px;
+        background: rgba(255, 255, 255, 0.48);
+        margin: 1.15rem 0;
+    }
+
+    .quick-info {
+        color: #d1d5db !important;
+        font-size: 0.86rem;
+        line-height: 1.42;
+        margin-top: 1.6rem;
+    }
+
+    .quick-info strong {
+        display: block;
+        color: #ffffff !important;
+        margin-bottom: 0.55rem;
+    }
+
+    section[data-testid="stSidebar"] div[role="radiogroup"] {
+        gap: 0.25rem !important;
+    }
+
+    section[data-testid="stSidebar"] label[data-baseweb="radio"] {
+        border-radius: 4px !important;
+        padding: 0.5rem 0.65rem !important;
+        margin: 0.08rem 0 !important;
+        background: transparent !important;
+        border: 0 !important;
+        color: #e5e7eb !important;
+    }
+
+    section[data-testid="stSidebar"] label[data-baseweb="radio"] > div:first-child {
+        display: none !important;
+    }
+
+    section[data-testid="stSidebar"] label[data-baseweb="radio"] p {
+        color: #e5e7eb !important;
+        font-size: 0.95rem !important;
+        font-weight: 400 !important;
+    }
+
+    section[data-testid="stSidebar"] label[data-baseweb="radio"]:has(input:checked) {
+        background: var(--accent-blue) !important;
+    }
+
+    section[data-testid="stSidebar"] label[data-baseweb="radio"]:has(input:checked) p {
+        color: #ffffff !important;
+        font-weight: 600 !important;
+    }
+
+    .app-rail,
+    div[data-testid="stRadio"]:has(div[role="radiogroup"][aria-label="Primary Navigation"]),
+    div[data-testid="stRadio"]:has(div[role="radiogroup"][aria-label="Section Navigation"]),
+    .reference-shell,
+    .activity-indicator,
+    .spacex-title {
+        display: none !important;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        color: var(--text-main) !important;
+        font-family: Arial, Helvetica, sans-serif !important;
+        letter-spacing: 0 !important;
+    }
+
+    h1, .page-title {
+        font-size: 1.65rem !important;
+        font-weight: 700 !important;
+        margin: 0 0 0.8rem !important;
+    }
+
+    h2, h3 {
+        font-size: 1.2rem !important;
+        font-weight: 700 !important;
+    }
+
+    p, span, label, div[data-testid="stMarkdownContainer"], .stCaption {
+        color: var(--text-main);
+    }
+
+    .page-divider {
+        border-top: 1px solid #9ca3af;
+        margin: 0.65rem 0 1.4rem;
+    }
+
+    .footer-note {
+        border-top: 1px solid #d1d5db;
+        color: #4b5563 !important;
+        font-size: 0.84rem;
+        margin-top: 1.8rem;
+        padding-top: 1.1rem;
+    }
+
+    div[data-testid="stButton"] button,
+    div[data-testid="stDownloadButton"] button,
+    .stButton > button,
+    .stDownloadButton > button {
+        background: var(--accent-blue) !important;
+        border: 1px solid var(--accent-blue) !important;
+        border-radius: 4px !important;
+        color: #ffffff !important;
+        font-weight: 600 !important;
+        box-shadow: none !important;
+        min-height: 2.35rem !important;
+    }
+
+    div[data-testid="stButton"] button *,
+    div[data-testid="stDownloadButton"] button *,
+    .stButton > button *,
+    .stDownloadButton > button * {
+        color: #ffffff !important;
+        fill: #ffffff !important;
+    }
+
+    div[data-testid="stButton"] button:hover,
+    div[data-testid="stDownloadButton"] button:hover {
+        background: #1d4ed8 !important;
+        border-color: #1d4ed8 !important;
+        color: #ffffff !important;
+    }
+
+    button:disabled,
+    button[disabled],
+    button[aria-disabled="true"] {
+        background: #e5e7eb !important;
+        border-color: #d1d5db !important;
+        color: #6b7280 !important;
+        opacity: 1 !important;
+    }
+
+    input,
+    textarea,
+    div[data-testid="stTextInput"] input,
+    div[data-testid="stNumberInput"] input,
+    div[data-testid="stDateInput"] input,
+    div[data-testid="stTextArea"] textarea,
+    .stTextInput input,
+    .stNumberInput input,
+    .stDateInput input,
+    .stTextArea textarea,
+    [data-baseweb="input"],
+    [data-baseweb="base-input"],
+    [data-baseweb="input"] input,
+    div[data-baseweb="select"] > div,
+    div[data-baseweb="select"] input,
+    div[data-baseweb="select"] span,
+    div[data-baseweb="input"] > div,
+    div[data-baseweb="textarea"] textarea {
+        background: #ffffff !important;
+        background-color: #ffffff !important;
+        color: var(--text-main) !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 4px !important;
+        box-shadow: none !important;
+    }
+
+    input:focus,
+    textarea:focus,
+    div[data-testid="stTextInput"] input:focus,
+    div[data-testid="stNumberInput"] input:focus,
+    div[data-testid="stDateInput"] input:focus,
+    div[data-testid="stTextArea"] textarea:focus,
+    .stTextInput input:focus,
+    .stNumberInput input:focus,
+    .stDateInput input:focus,
+    [data-baseweb="input"]:focus-within,
+    [data-baseweb="base-input"]:focus-within,
+    div[data-baseweb="select"] > div:focus-within {
+        background: #ffffff !important;
+        background-color: #ffffff !important;
+        color: var(--text-main) !important;
+        border-color: #94a3b8 !important;
+        box-shadow: 0 0 0 1px #94a3b8 !important;
+    }
+
+    label,
+    [data-testid="stCheckbox"] label,
+    [data-testid="stSelectbox"] label,
+    [data-testid="stTextInput"] label,
+    [data-testid="stNumberInput"] label,
+    [data-testid="stDateInput"] label,
+    [data-testid="stTextArea"] label {
+        color: var(--text-main) !important;
+        font-weight: 600 !important;
+    }
+
+    div[data-baseweb="popover"],
+    div[data-baseweb="menu"] {
+        background: #ffffff !important;
+        color: var(--text-main) !important;
+    }
+
+    div[data-testid="stMetric"],
+    .ref-card,
+    .metric-card,
+    .intel-card,
+    .panel-card,
+    .copilot-panel,
+    .market-panel {
+        background: #ffffff !important;
+        border: 1px solid var(--border-soft) !important;
+        border-radius: 4px !important;
+        box-shadow: none !important;
+        color: var(--text-main) !important;
+        padding: 0.8rem !important;
+    }
+
+    .ref-kpi-label,
+    .metric-label,
+    .panel-title,
+    .copilot-title,
+    .market-label {
+        color: var(--text-main) !important;
+        text-transform: none !important;
+        letter-spacing: 0 !important;
+    }
+
+    .ref-kpi-value,
+    .metric-value,
+    .copilot-value,
+    .market-value {
+        color: var(--text-main) !important;
+    }
+
+    .ref-kpi-note,
+    .metric-note,
+    .settings-note,
+    .sidebar-note,
+    .intel-note,
+    .copilot-subtitle {
+        color: var(--text-muted) !important;
+    }
+
+    div[data-testid="stDataFrame"],
+    div[data-testid="stTable"] {
+        border: 1px solid var(--border-soft) !important;
+        border-radius: 0 !important;
+        background: #ffffff !important;
+        color: var(--text-main) !important;
+    }
+
+    div[data-testid="stAlert"] {
+        background: #f9fafb !important;
+        border: 1px solid var(--border-soft) !important;
+        color: var(--text-main) !important;
+        border-radius: 4px !important;
+    }
+
+    .ticker-chip {
+        display: inline-flex;
+        border: 1px solid #cbd5e1 !important;
+        background: #f9fafb !important;
+        color: var(--text-main) !important;
+        border-radius: 4px !important;
+        padding: 0.12rem 0.4rem;
+        margin: 0.1rem 0.12rem 0.1rem 0;
+        font-size: 0.75rem;
+    }
+
+    .factor-bar {
+        background: #e5e7eb !important;
+    }
+
+    .factor-bar span,
+    .legend-line::before {
+        background: var(--accent-blue) !important;
+    }
+
+    .legend-line.spy::before,
+    .risk-toggle {
+        background: #9ca3af !important;
+    }
+
+    @media (max-width: 900px) {
+        .block-container {
+            padding: 1.3rem !important;
+        }
+    }
     </style>
     """,
     unsafe_allow_html=True,
@@ -1900,12 +2220,12 @@ def _style_chart(fig, height: int = 360):
     if fig.layout.title is None or fig.layout.title.text in {None, "undefined"}:
         fig.update_layout(title_text="")
     fig.update_layout(
-        template="plotly_dark",
+        template="plotly_white",
         height=height,
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="#030303",
-        font={"color": "#f0f0f0", "family": "Segoe UI, Inter, system-ui, sans-serif", "size": 12},
-        title={"font": {"size": 15, "color": "#ffffff"}, "x": 0.01},
+        paper_bgcolor="#ffffff",
+        plot_bgcolor="#ffffff",
+        font={"color": "#111827", "family": "Arial, Helvetica, sans-serif", "size": 12},
+        title={"font": {"size": 15, "color": "#111827"}, "x": 0.01},
         colorway=CHART_COLORS,
         legend={
             "orientation": "h",
@@ -1913,24 +2233,24 @@ def _style_chart(fig, height: int = 360):
             "y": 1.02,
             "xanchor": "right",
             "x": 1,
-            "font": {"color": "#d6d6d6"},
+            "font": {"color": "#374151"},
         },
         margin={"l": 36, "r": 18, "t": 54, "b": 36},
-        hoverlabel={"bgcolor": "#080808", "font_color": "#ffffff", "bordercolor": "#4a4a4a"},
+        hoverlabel={"bgcolor": "#ffffff", "font_color": "#111827", "bordercolor": "#d1d5db"},
     )
     fig.update_xaxes(
-        gridcolor="rgba(255,255,255,0.08)",
-        linecolor="rgba(255,255,255,0.22)",
-        tickfont={"color": "#d2d2d2"},
-        title_font={"color": "#d6d6d6"},
-        zerolinecolor="rgba(255,255,255,0.12)",
+        gridcolor="#e5e7eb",
+        linecolor="#d1d5db",
+        tickfont={"color": "#374151"},
+        title_font={"color": "#374151"},
+        zerolinecolor="#e5e7eb",
     )
     fig.update_yaxes(
-        gridcolor="rgba(255,255,255,0.08)",
-        linecolor="rgba(255,255,255,0.22)",
-        tickfont={"color": "#d2d2d2"},
-        title_font={"color": "#d6d6d6"},
-        zerolinecolor="rgba(255,255,255,0.12)",
+        gridcolor="#e5e7eb",
+        linecolor="#d1d5db",
+        tickfont={"color": "#374151"},
+        title_font={"color": "#374151"},
+        zerolinecolor="#e5e7eb",
     )
     return fig
 
@@ -1980,8 +2300,8 @@ def _normalise_page(page: str | None) -> str:
     if page in PAGES:
         return page
     if page:
-        return PAGE_SLUGS.get(str(page).lower().replace(" ", "-"), "Overview")
-    return "Overview"
+        return PAGE_SLUGS.get(str(page).lower().replace(" ", "-"), "Market Overview")
+    return "Market Overview"
 
 
 def _sync_from_rail() -> None:
@@ -2560,6 +2880,95 @@ def _tab_header(title: str, subtitle: str) -> None:
     st.caption(subtitle)
 
 
+def _page_heading(page: str) -> None:
+    st.markdown(f'<div class="page-title">{PAGE_NUMBERS[page]}. {escape(page)}</div>', unsafe_allow_html=True)
+    st.markdown('<div class="page-divider"></div>', unsafe_allow_html=True)
+
+
+def _footer() -> None:
+    st.markdown(
+        '<div class="footer-note">Quant Research Platform | Built with Python, Pandas, Plotly, Streamlit</div>',
+        unsafe_allow_html=True,
+    )
+
+
+def _render_sidebar(active_page: str) -> str:
+    if st.session_state.get("sidebar_page") not in PAGES:
+        st.session_state.sidebar_page = active_page
+    with st.sidebar:
+        st.markdown('<div class="sidebar-title">Quant Research<br>Platform</div>', unsafe_allow_html=True)
+        st.markdown('<div class="sidebar-rule"></div>', unsafe_allow_html=True)
+        st.markdown("**Navigation**")
+        selected = st.radio(
+            "Navigation",
+            PAGES,
+            index=PAGES.index(active_page),
+            key="sidebar_page",
+            format_func=lambda page: f"{PAGE_NUMBERS[page]}.  {page}",
+            label_visibility="collapsed",
+        )
+        st.markdown('<div class="sidebar-rule"></div>', unsafe_allow_html=True)
+        if _need_data():
+            info = "Select an asset universe and date range, then load data to begin."
+        else:
+            tickers_loaded = st.session_state.price_data["ticker"].nunique()
+            rows_loaded = len(st.session_state.price_data)
+            info = f"{tickers_loaded} tickers loaded with {rows_loaded:,} price records."
+        st.markdown(f'<div class="quick-info"><strong>Quick Info</strong>{escape(info)}</div>', unsafe_allow_html=True)
+    return selected
+
+
+def _render_data_controls() -> bool:
+    c1, c2, c3, c4, c5, c6 = st.columns([1.1, 1.35, 1, 1, 0.75, 0.8], vertical_alignment="bottom")
+    c1.selectbox("Asset Class", ["Equities"], index=0)
+    c2.text_input("Asset / Ticker", key="control_tickers")
+    c3.date_input("Start Date", key="control_start")
+    c4.date_input("End Date", key="control_end")
+    c5.checkbox("Refresh", value=False, key="control_refresh")
+    return c6.button("Load Data", use_container_width=True)
+
+
+def _summary_statistics(price_data: pd.DataFrame, ticker: str) -> pd.DataFrame:
+    history = price_data.loc[price_data["ticker"].astype(str).str.upper() == ticker.upper()].sort_values("date")
+    if history.empty:
+        return pd.DataFrame({"Metric": ["Status"], "Value": [f"No loaded data for {ticker}"]})
+    returns = pd.to_numeric(history["returns"], errors="coerce").fillna(0.0)
+    equity = (1.0 + returns).cumprod()
+    start_price = float(history["adj_close"].iloc[0])
+    end_price = float(history["adj_close"].iloc[-1])
+    total_return = end_price / start_price - 1.0 if start_price else np.nan
+    annual_vol = returns.std() * np.sqrt(252) if len(returns) > 1 else np.nan
+    annual_return = (1.0 + total_return) ** (252 / max(len(history), 1)) - 1.0 if pd.notna(total_return) else np.nan
+    sharpe = annual_return / annual_vol if pd.notna(annual_return) and pd.notna(annual_vol) and annual_vol > 0 else np.nan
+    drawdown = equity / equity.cummax() - 1.0
+    rows = [
+        ("Start Price", f"{start_price:,.2f}"),
+        ("End Price", f"{end_price:,.2f}"),
+        ("Total Return", _pct(total_return)),
+        ("Annualised Return", _pct(annual_return)),
+        ("Volatility (Ann.)", _pct(annual_vol)),
+        ("Sharpe Ratio", f"{sharpe:.2f}" if pd.notna(sharpe) else "n/a"),
+        ("Max Drawdown", _pct(drawdown.min())),
+    ]
+    return pd.DataFrame(rows, columns=["Metric", "Value"])
+
+
+def _recent_performance(price_data: pd.DataFrame, ticker: str, rows: int = 5) -> pd.DataFrame:
+    history = price_data.loc[price_data["ticker"].astype(str).str.upper() == ticker.upper()].sort_values("date")
+    if history.empty:
+        return pd.DataFrame(columns=["Date", "Close", "Daily Return"])
+    out = history.tail(rows).sort_values("date", ascending=False).copy()
+    out["Date"] = pd.to_datetime(out["date"]).dt.date.astype(str)
+    out["Close"] = out["adj_close"].map(lambda value: f"{value:,.2f}" if pd.notna(value) else "n/a")
+    out["Daily Return"] = out["returns"].map(_pct)
+    return out[["Date", "Close", "Daily Return"]]
+
+
+def _selected_ticker() -> str:
+    parsed = normalize_tickers(st.session_state.control_tickers)
+    return parsed[0] if parsed else "SPY"
+
+
 if "activity_mode" not in st.session_state:
     st.session_state.activity_mode = "ready"
 if "activity_label" not in st.session_state:
@@ -2567,7 +2976,8 @@ if "activity_label" not in st.session_state:
 activity_slot = st.empty()
 _update_activity(activity_slot, st.session_state.activity_mode, st.session_state.activity_label)
 
-active_page = _active_page()
+active_page = _render_sidebar(_active_page())
+st.session_state.active_page = active_page
 
 if "control_tickers" not in st.session_state:
     st.session_state.control_tickers = DEFAULT_TICKERS
@@ -2578,32 +2988,8 @@ if "control_start" not in st.session_state:
 if "control_end" not in st.session_state:
     st.session_state.control_end = pd.Timestamp.today()
 
-_render_bottom_nav(active_page)
-
-title_col, load_col = st.columns([1, 0.22], vertical_alignment="top")
-with title_col:
-    st.markdown('<h1 class="spacex-title">Quant Research Platform</h1>', unsafe_allow_html=True)
-
-with load_col:
-    with st.popover("Load Market Data", help="Open market data controls"):
-        st.markdown("#### Market Data")
-        st.markdown('<div class="settings-note">Universe, benchmark, dates, and local cache controls.</div>', unsafe_allow_html=True)
-        ticker_text = st.text_area("Ticker universe", height=118, key="control_tickers")
-        parsed_tickers = normalize_tickers(st.session_state.control_tickers)
-        if parsed_tickers:
-            chips = "".join(f'<span class="ticker-chip">{ticker}</span>' for ticker in parsed_tickers[:16])
-            if len(parsed_tickers) > 16:
-                chips += f'<span class="ticker-chip">+{len(parsed_tickers) - 16}</span>'
-            st.markdown(chips, unsafe_allow_html=True)
-            st.markdown(f'<div class="sidebar-note">{len(parsed_tickers)} securities parsed for local factor research.</div>', unsafe_allow_html=True)
-
-        benchmark_input = st.text_input("Benchmark", key="control_benchmark")
-        date_cols = st.columns(2)
-        start_date = date_cols[0].date_input("Start", key="control_start")
-        end_date = date_cols[1].date_input("End", key="control_end")
-
-        refresh = st.checkbox("Refresh market data", value=False)
-        run_data = st.button("Load market data", use_container_width=True)
+_page_heading(active_page)
+run_data = _render_data_controls()
 
 parsed_tickers = normalize_tickers(st.session_state.control_tickers)
 benchmark = str(st.session_state.control_benchmark).strip().upper()
@@ -2616,6 +3002,7 @@ else:
     tickers_with_benchmark = tickers
 
 if run_data:
+    refresh = bool(st.session_state.get("control_refresh", False))
     _update_activity(activity_slot, "processing", "Refreshing data" if refresh else "Loading data")
     with st.spinner("Loading market data..."):
         try:
@@ -2634,14 +3021,37 @@ if run_data:
             _update_activity(activity_slot, "ready", "Action failed")
             st.error(str(exc))
 
-if active_page == "Overview":
-    _render_overview(benchmark)
+if active_page == "Market Overview":
+    if _need_data():
+        st.info("Select an asset universe and date range, then click Load Data.")
+    else:
+        price_data = st.session_state.price_data
+        selected_ticker = _selected_ticker()
+        history = price_data.loc[price_data["ticker"].astype(str).str.upper() == selected_ticker].sort_values("date")
+        if history.empty:
+            st.warning(f"No loaded price history is available for {selected_ticker}.")
+        else:
+            st.markdown("### Price Chart")
+            fig = px.line(history, x="date", y="adj_close", title=f"{selected_ticker} Adjusted Close")
+            fig.update_traces(name="Close", showlegend=True)
+            st.plotly_chart(_style_chart(fig, height=380), use_container_width=True)
+
+            left, right = st.columns(2, gap="large")
+            with left:
+                st.markdown("### Summary Statistics")
+                st.dataframe(_summary_statistics(price_data, selected_ticker), use_container_width=True, hide_index=True)
+            with right:
+                st.markdown("### Recent Performance")
+                st.dataframe(_recent_performance(price_data, selected_ticker), use_container_width=True, hide_index=True)
+
+        with st.expander("Cross-asset market monitor"):
+            _render_market_dashboard()
 
 elif active_page == "Market Dashboard":
     _render_market_dashboard()
 
-elif active_page == "Data":
-    _tab_header("Data", "Cached market data, adjusted close history, and clean OHLCV preview.")
+elif active_page == "Data Explorer":
+    _tab_header("Data Explorer", "Cached market data, adjusted close history, factor values and rankings.")
     if _need_data():
         st.info("Use Load Market Data to start.")
     else:
@@ -2660,6 +3070,37 @@ elif active_page == "Data":
         )
         st.caption("Recent normalised OHLCV records")
         st.dataframe(price_data.tail(500), use_container_width=True, hide_index=True)
+
+        st.markdown("### Factor Snapshot")
+        factor_data = st.session_state.get("factor_data")
+        if factor_data is None or factor_data.empty:
+            _update_activity(activity_slot, "processing", "Calculating factors")
+            factor_data = calculate_factors(st.session_state.price_data)
+            st.session_state.factor_data = factor_data
+            _update_activity(activity_slot, "ready", "Factors ready")
+        factor_choice = st.selectbox("Ranking factor", options=list(FACTOR_DIRECTIONS), index=0)
+        latest = latest_rows(factor_data.dropna(subset=[factor_choice]), group_col="ticker")
+        direction = FACTOR_DIRECTIONS.get(factor_choice, "higher")
+        ranked = latest.sort_values(factor_choice, ascending=(direction == "lower"))
+        factor_cols = [
+            "date",
+            "ticker",
+            "mom_12m",
+            "mom_6m",
+            "mom_3m",
+            "vol_60d",
+            "vol_20d",
+            "mean_reversion_5d",
+            "ma_crossover",
+            "relative_strength_rank",
+        ]
+        available_cols = [col for col in factor_cols if col in factor_data.columns]
+        st.dataframe(latest_rows(factor_data, group_col="ticker")[available_cols].sort_values("ticker"), use_container_width=True, hide_index=True)
+        if not ranked.empty:
+            st.plotly_chart(
+                _style_chart(px.bar(ranked.head(25), x="ticker", y=factor_choice, title=f"Latest {factor_choice} Ranking"), height=320),
+                use_container_width=True,
+            )
 
 elif active_page == "Factors":
     _tab_header("Factors", "Cross-sectional signal rankings, latest factor values, and single-name factor history.")
@@ -2742,8 +3183,11 @@ elif active_page == "Factors":
 elif active_page == "Trade Ideas":
     _render_trade_ideas(benchmark)
 
-elif active_page == "Backtest":
-    _tab_header("Backtest", "Configure factor strategy construction, rebalance cadence, benchmark, and capital base.")
+elif active_page == "Strategy Backtest":
+    st.markdown("### Trade Ideas")
+    _render_trade_ideas(benchmark)
+    st.markdown("---")
+    _tab_header("Strategy Backtest", "Configure factor strategy construction, rebalance cadence, benchmark, and capital base.")
     if _need_data():
         st.info("Load market data first.")
     else:
@@ -2821,8 +3265,8 @@ elif active_page == "Backtest":
             d2.download_button("Download metrics CSV", data=metrics_frame.to_csv(index=False), file_name="backtest_metrics.csv", mime="text/csv", use_container_width=True)
             d3.download_button("Download metrics text", data=markdown_to_text(metrics_to_markdown(metrics_frame)), file_name="backtest_metrics.txt", mime="text/plain", use_container_width=True)
 
-elif active_page == "Risk Analytics":
-    _tab_header("Risk Analytics", "Performance, tail risk, rolling risk, drawdown, and benchmark-relative comparison.")
+elif active_page == "Risk Analysis":
+    _tab_header("Risk Analysis", "Performance, tail risk, rolling risk, drawdown, and benchmark-relative comparison.")
     result = st.session_state.get("backtest_result")
     if not result:
         st.info("Run a backtest to view risk analytics.")
@@ -2854,8 +3298,8 @@ elif active_page == "Risk Analytics":
         if not trades.empty:
             st.dataframe(trades.tail(200), use_container_width=True, hide_index=True)
 
-elif active_page == "AI Research Report":
-    _tab_header("AI Research Report", "Deterministic institutional equity note with optional OpenAI-compatible enhancement.")
+elif active_page == "Research Report":
+    _tab_header("Research Report", "Deterministic equity note with optional OpenAI-compatible enhancement.")
     if _need_data():
         st.info("Load market data first.")
     else:
@@ -2908,5 +3352,31 @@ elif active_page == "AI Research Report":
                     use_container_width=True,
                 )
 
+        with st.expander("Market brief"):
+            _render_market_brief(benchmark)
+
 elif active_page == "Market Brief":
     _render_market_brief(benchmark)
+
+elif active_page == "Settings":
+    _tab_header("Settings", "Local data controls and optional API configuration.")
+    parsed = normalize_tickers(st.session_state.control_tickers)
+    st.markdown("### Current Inputs")
+    st.dataframe(
+        pd.DataFrame(
+            [
+                ("Ticker universe", ", ".join(parsed) if parsed else "None"),
+                ("Benchmark", benchmark or "SPY"),
+                ("Start date", str(start_date)),
+                ("End date", str(end_date)),
+                ("Refresh cache", str(bool(st.session_state.get("control_refresh", False)))),
+            ],
+            columns=["Setting", "Value"],
+        ),
+        use_container_width=True,
+        hide_index=True,
+    )
+    st.markdown("### Optional AI API")
+    st.info("The platform works without an API key. Optional OpenAI-compatible settings can be supplied through `.env`.")
+
+_footer()

@@ -1,18 +1,18 @@
 # Quant Research Platform with AI Research Assistant
 
-A local-first MVP for equity and markets research. It downloads and caches market data, monitors cross-asset market instruments, calculates factor signals, generates explainable trade ideas, backtests long-only factor strategies, evaluates risk and performance, and produces institutional-style research reports and market briefs with or without an LLM API key.
+A local-first MVP for equity and markets research. It downloads and caches market data, monitors cross-asset market instruments, calculates factor signals, generates explainable trade ideas, backtests long-only factor strategies, evaluates risk and performance, and produces structured research reports and market briefs with or without an LLM API key.
 
 ## Screenshots
 
-![Overview dashboard](docs/screenshots/overview.png)
+![Market Overview](docs/screenshots/overview.png)
 
-![Data page](docs/screenshots/data.png)
+![Data Explorer](docs/screenshots/data.png)
 
-![Backtest page](docs/screenshots/backtest.png)
+![Strategy Backtest](docs/screenshots/backtest.png)
 
-![Risk Analytics page](docs/screenshots/risk-analytics.png)
+![Risk Analysis](docs/screenshots/risk-analytics.png)
 
-![AI Research Report page](docs/screenshots/ai-research-report.png)
+![Research Report](docs/screenshots/ai-research-report.png)
 
 ## Why This Matters
 
@@ -36,9 +36,9 @@ Quant research workflows often split data ingestion, signal research, backtestin
 - Benchmark comparison against SPY or any available ticker
 - CAGR, volatility, Sharpe, Sortino, drawdown, Calmar, beta, alpha, information ratio, win rate
 - Rolling volatility, rolling Sharpe, drawdown, VaR, CVaR
-- Streamlit dashboard with Data, Factors, Backtest, Risk Analytics, and AI Research Report tabs
-- Additional Market Dashboard, Trade Ideas, and Market Brief sections for global markets monitoring, research preparation, and desk-style commentary
-- Modern dark institutional-style dashboard with visible navigation, KPI cards, factor analytics, benchmark-aware backtesting, risk analytics, and AI-assisted equity reports
+- Streamlit dashboard with Market Overview, Data Explorer, Strategy Backtest, Risk Analysis, Research Report, and Settings pages
+- Additional market monitoring, trade idea, and market brief sections for research preparation and risk review
+- Restrained graduate portfolio-style interface with sidebar navigation, plain tables, standard controls, Plotly charts, and concise research outputs
 - Deterministic research reports without paid APIs
 - Deterministic AI market brief covering market overview, key movers, risk sentiment, trade themes, and portfolio/risk implications
 - Optional OpenAI-compatible completion when environment variables are configured

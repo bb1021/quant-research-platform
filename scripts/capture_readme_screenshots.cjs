@@ -6,88 +6,88 @@ const root = path.resolve(__dirname, "..");
 const outDir = path.join(root, "docs", "screenshots");
 fs.mkdirSync(outDir, { recursive: true });
 
-async function waitForApp(page) {
-  await page.waitForSelector(".reference-page-label", { timeout: 30000 });
+async function waitForReady(page) {
+  await page.waitForSelector("text=Quant Research Platform", { timeout: 30000 });
+  await page.waitForTimeout(1500);
+}
+
+async function gotoPage(page, label) {
+  const navLabel = page.locator("section[data-testid='stSidebar']").getByText(label, { exact: false });
+  await navLabel.click();
+  await page.waitForSelector(`text=${label}`, { timeout: 30000 });
   await page.waitForTimeout(1200);
 }
 
-async function gotoSection(page, label) {
-  const nav = page.locator('div[role="radiogroup"][aria-label="Section Navigation"]');
-  await nav.getByText(label, { exact: true }).click();
-  await page.waitForFunction(
-    (expected) => document.querySelector(".reference-page-label")?.textContent?.trim() === expected,
-    label,
-    { timeout: 30000 },
-  );
-  await page.waitForTimeout(900);
-}
-
-async function clickIfVisible(locator) {
-  if (!(await locator.count())) {
-    return false;
-  }
-  const first = locator.first();
-  if (!(await first.isVisible())) {
-    return false;
-  }
-  await first.click();
-  return true;
-}
-
-async function waitForAny(page, checks, timeout = 120000) {
-  try {
-    await page.waitForFunction(
-      (needles) => needles.some((needle) => document.body.innerText.includes(needle)),
-      checks,
-      { timeout },
-    );
+async function clickButton(page, name) {
+  const button = page.getByRole("button", { name });
+  if ((await button.count()) > 0 && (await button.first().isVisible())) {
+    await button.first().click();
     return true;
-  } catch {
-    return false;
   }
+  return false;
+}
+
+async function waitForText(page, labels, timeout = 90000) {
+  await page.waitForFunction(
+    (needles) => needles.some((needle) => document.body.innerText.includes(needle)),
+    labels,
+    { timeout },
+  );
+}
+
+async function screenshot(page, filename) {
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.waitForTimeout(1200);
+  await page.screenshot({ path: path.join(outDir, filename), fullPage: false });
+}
+
+async function waitForChart(page, timeout = 90000) {
+  await page.waitForSelector(".js-plotly-plot .main-svg", { timeout });
+  await page.waitForTimeout(1500);
 }
 
 (async () => {
+  const baseUrl = process.env.APP_URL || "http://127.0.0.1:8503";
   const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage({ viewport: { width: 1440, height: 980 }, deviceScaleFactor: 1 });
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
   page.setDefaultTimeout(30000);
 
-  await page.goto("http://localhost:8501", { waitUntil: "domcontentloaded" });
-  await waitForApp(page);
+  await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+  await waitForReady(page);
 
-  await page.getByRole("button", { name: "☰" }).click();
-  await page.waitForSelector("text=Research Settings", { timeout: 15000 });
-  await page.getByRole("button", { name: "Load market data" }).click();
-  await waitForAny(page, ["Recent normalised OHLCV records", "Data loaded", "Action failed"], 90000);
-  await page.keyboard.press("Escape").catch(() => {});
+  await page.getByLabel("Asset / Ticker").fill("AAPL, MSFT, NVDA, SPY");
+  await page.getByRole("button", { name: "Load Data" }).click();
+  await waitForText(page, ["Price Chart", "Recent Performance", "Use Load Data to start."], 120000);
+  await waitForChart(page);
+  await screenshot(page, "overview.png");
 
-  await gotoSection(page, "Backtest");
-  await clickIfVisible(page.getByRole("button", { name: "Run backtest" }));
-  await waitForAny(page, ["Equity Curve", "Backtest complete", "Load market data first"], 45000);
+  await gotoPage(page, "Data Explorer");
+  await waitForText(page, ["Recent normalised OHLCV records", "Factor Snapshot"], 60000);
+  await waitForChart(page);
+  await screenshot(page, "data.png");
 
-  await gotoSection(page, "AI Research Report");
-  await clickIfVisible(page.getByRole("button", { name: "Generate report" }));
-  await waitForAny(page, ["Executive Summary", "Report generated", "Load market data first"], 45000);
+  await gotoPage(page, "Strategy Backtest");
+  await waitForText(page, ["Strategy Backtest"], 60000);
+  await clickButton(page, "Run backtest");
+  await waitForText(page, ["Equity Curve", "Portfolio Drawdown", "Final value"], 90000);
+  await waitForChart(page);
+  await screenshot(page, "backtest.png");
 
-  const pages = [
-    ["Overview", "overview.png"],
-    ["Data", "data.png"],
-    ["Backtest", "backtest.png"],
-    ["Risk Analytics", "risk-analytics.png"],
-    ["AI Research Report", "ai-research-report.png"],
-  ];
+  await gotoPage(page, "Risk Analysis");
+  await waitForText(page, ["Rolling 63-Day Volatility", "Tail risk summary"], 60000);
+  await waitForChart(page);
+  await screenshot(page, "risk-analytics.png");
 
-  const captured = [];
-  for (const [label, filename] of pages) {
-    await gotoSection(page, label);
-    await page.waitForTimeout(1400);
-    const filePath = path.join(outDir, filename);
-    await page.screenshot({ path: filePath, fullPage: false });
-    const header = await page.locator(".reference-page-label").innerText();
-    const bottom = await page.locator('div[role="radiogroup"][aria-label="Section Navigation"] label:has(input:checked)').innerText();
-    captured.push({ filename, header, bottom: bottom.trim(), size: fs.statSync(filePath).size });
-  }
+  await gotoPage(page, "Research Report");
+  await waitForText(page, ["Research Report"], 60000);
+  await clickButton(page, "Generate report");
+  await waitForText(page, ["Executive Summary", "Price Performance Overview"], 90000);
+  await screenshot(page, "ai-research-report.png");
 
   await browser.close();
+
+  const captured = fs.readdirSync(outDir)
+    .filter((file) => file.endsWith(".png"))
+    .map((file) => ({ file, bytes: fs.statSync(path.join(outDir, file)).size }));
   console.log(JSON.stringify(captured, null, 2));
 })();
